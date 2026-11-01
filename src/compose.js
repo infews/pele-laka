@@ -18,7 +18,7 @@ export function readAndCompose({ diagram, stylesheet, fontFamily, fontSize }) {
 }
 
 export function describeError(error, file) {
-  if (!(error instanceof PeleError)) return error.message;
+  if (!(error instanceof PeleError)) return error instanceof Error ? (error.message || String(error)) : String(error);
   if (error.line > 0) return `${file}:${error.line}:${error.column}: ${error.message}`;
   return `${file}: ${error.message}`;
 }

@@ -73,3 +73,8 @@ test("embed finds the root tag end even with > inside an attribute value", () =>
 test("embed rejects output with no root svg tag", () => {
   assert.throws(() => embed("<div></div>", "x{}"), /unexpected pele output: no root <svg> tag/);
 });
+
+test("describeError handles non-Error throws and empty messages", () => {
+  assert.equal(describeError("boom", "d.mmd"), "boom");
+  assert.ok(describeError(new Error(""), "d.mmd").length > 0);
+});
