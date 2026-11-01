@@ -114,12 +114,15 @@ does not set the variable. Fonts are never embedded: viewers need the family
 installed.
 
 **Some properties only move through their variable.** pele applies the corner
-radius with an inline `style="rx:var(--_r)"`, and inline style beats any
-stylesheet rule. `.pele-node rect { rx: 12 }` does nothing; set `--pele-radius`.
+radius with an inline `style="rx:var(--_r)"`, and inline style beats any normal
+stylesheet rule. `.pele-node rect { rx: 12px }` does nothing; set `--pele-radius`
+instead of reaching for `!important`.
 
 **`style` and `classDef` in the diagram ignore the theme.** They write fixed
 colors, so `--pele-surface` will not reach a node that has one. Use them for
-deliberate one-offs, or give the node a class and style that from your sheet.
+deliberate one-offs, or give the node a class and style that from your sheet:
+`class A hot` in the diagram puts `hot` on the node's `<g>`, so
+`.pele-node.hot > rect { fill: var(--pele-critical); }` follows the theme.
 
 **Pasting the SVG into an HTML page leaks the styles.** The embedded `<style>`
 applies to the *whole* document once the SVG is inline, so `.pele { ... }` rules
