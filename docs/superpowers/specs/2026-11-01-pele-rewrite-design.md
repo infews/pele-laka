@@ -1,11 +1,11 @@
-# mmd-preview on pele — design
+# pele-preview — design
 
 Date: 2026-11-01
 Status: approved, pending implementation plan
 
 ## Goal
 
-Replace the Ruby + mermaid-cli implementation with a Node (plain JavaScript,
+Rename the tool to `pele-preview` and replace the Ruby + mermaid-cli implementation with a Node (plain JavaScript,
 ESM) CLI built on [pele](https://github.com/obsidianmd/pele). Given a `.mmd`
 diagram and an optional `.css` file that adds to or overrides pele's defaults,
 the tool either:
@@ -36,7 +36,7 @@ such as `fill="var(--_s)"`. Consequences:
 ## Command line
 
 ```
-mmd-preview DIAGRAM.mmd [STYLE.css] [options]
+pele-preview DIAGRAM.mmd [STYLE.css] [options]
 
   -o, --output FILE    write a self-contained SVG to FILE and exit (no server)
   -c, --css FILE       stylesheet (same as the second positional argument)
@@ -60,7 +60,7 @@ All rendering happens in Node. Preview and export share one function, so the
 preview shows exactly the bytes that export writes.
 
 ```
-bin/mmd-preview          entry; owns process exit and error printing
+bin/pele-preview         entry; owns process exit and error printing
 src/cli.js               argv → options object; throws UsageError / HelpRequested
 src/compose.js           compose(mmd, css, renderOpts) → svg string
 src/server.js            loopback http server: page, diagram, SSE reload stream
@@ -134,7 +134,7 @@ Read both files, `compose`, write `--output`. On `PeleError` print
 
 ## Packaging
 
-`package.json`: `"type": "module"`, `"bin": { "mmd-preview": "bin/mmd-preview" }`,
+`package.json`: `"name": "pele-preview"`, `"type": "module"`, `"bin": { "pele-preview": "bin/pele-preview" }`,
 `"engines": { "node": ">=20" }`, single dependency `pele`. Install with
 `npm i -g .` or run with `npx`.
 
