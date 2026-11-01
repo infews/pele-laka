@@ -26,6 +26,11 @@ export function watchFiles(paths, onChange, { delay = 100 } = {}) {
           setTimeout(() => attach(path, true), delay);
         }
       });
+      watcher.on("error", () => {
+        watcher.close();
+        if (watchers.get(path) === watcher) watchers.delete(path);
+        setTimeout(() => attach(path, true), delay);
+      });
       watchers.set(path, watcher);
       if (retry) changed();
     } catch {
