@@ -23,15 +23,19 @@
   const stage = document.getElementById("pp-stage");
   const error = document.getElementById("pp-error");
   let shown = -1;
+  let seq = 0; // only the latest update() may touch the DOM
 
   async function update() {
+    const mine = ++seq;
     const state = await (await fetch("/state.json", { cache: "no-store" })).json();
-    if (state.revision === shown) return;
-    shown = state.revision;
-    stage.innerHTML = await (await fetch(`/diagram.svg?rev=${state.revision}`)).text();
+    if (mine !== seq || state.revision === shown) return;
+    const svg = await (await fetch(`/diagram.svg?rev=${state.revision}`)).text();
+    if (mine !== seq) return;
+    stage.innerHTML = svg;
     error.textContent = state.error ?? "";
     error.classList.toggle("shown", Boolean(state.error));
     stage.classList.toggle("stale", Boolean(state.error));
+    shown = state.revision;
   }
 
   new EventSource("/events").onmessage = update;
