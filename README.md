@@ -33,6 +33,9 @@ usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
   -B, --browser APP    open in a specific app, e.g. "Google Chrome"
       --font FAMILY    font family pele measures labels with (default: sans-serif)
       --font-size N    font size pele measures labels with (default: 16)
+      --scheme MODE    auto | light | dark (default: auto). With -o, light or
+                       dark fixes the SVG to that scheme; auto follows the
+                       viewer. In preview, the scheme the page starts on.
   -h, --help           show this message
 ```
 
@@ -96,8 +99,30 @@ ordinary classes on ordinary SVG elements:
 Because pele sets colors as presentation attributes, and any CSS rule beats a
 presentation attribute, **a plain selector wins with no `!important`**.
 
-`@media (prefers-color-scheme: dark)` works in the shipped file, so one SVG can
-carry both themes.
+### Light and dark
+
+Write the dark side of your theme as `@media (prefers-color-scheme: dark)` (and,
+if you like, the light side as `prefers-color-scheme: light`). Then pick how the
+SVG uses it:
+
+| `--scheme` | Exported SVG (`-o`) |
+|---|---|
+| `auto` (default) | carries both; follows the viewer's OS setting |
+| `light` | always light, whatever the viewer's setting |
+| `dark` | always dark, whatever the viewer's setting |
+
+A web page cannot force `prefers-color-scheme`, so `light` and `dark` work by
+rewriting your CSS as it is embedded: each `(prefers-color-scheme: dark)` becomes
+a condition that is always true (`(min-width: 0px)`) or never true
+(`(not (min-width: 0px))`), and the same for `light`. Your file on disk is never
+changed.
+
+The preview page has an **Auto / Light / Dark** toggle in the top-right corner;
+`--scheme` picks where it starts. The page's own colors follow the toggle, and
+each position shows exactly the SVG that `-o` with that `--scheme` would write.
+
+Without a stylesheet there is nothing to switch: pele's defaults are a light
+theme, so Dark shows the light diagram on a dark page.
 
 ---
 

@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 import { writeFileSync } from "node:fs";
 import { parse, UsageError, HelpRequested } from "../src/cli.js";
-import { readAndCompose, describeError } from "../src/compose.js";
+import { readAndCompose, readAndComposeAll, describeError } from "../src/compose.js";
 import { startServer } from "../src/server.js";
 import { watchFiles } from "../src/watcher.js";
 import { launch } from "../src/browser.js";
 
 const options = parseOrExit(process.argv.slice(2));
-const render = () => readAndCompose(options);
 const describe = (error) => describeError(error, options.diagram);
 
 if (options.output) {
@@ -34,7 +33,7 @@ function parseOrExit(argv) {
 
 function exportSvg() {
   try {
-    writeFileSync(options.output, render());
+    writeFileSync(options.output, readAndCompose(options));
     console.log(`wrote ${options.output}`);
   } catch (error) {
     console.error(describe(error));
@@ -45,7 +44,12 @@ function exportSvg() {
 async function preview() {
   let server;
   try {
-    server = await startServer({ port: options.port, render, describe });
+    server = await startServer({
+      port: options.port,
+      scheme: options.scheme,
+      render: () => readAndComposeAll(options),
+      describe,
+    });
   } catch (error) {
     console.error(`could not start server: ${error.message}`);
     process.exit(1);

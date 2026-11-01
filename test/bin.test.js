@@ -18,6 +18,15 @@ test("-o writes an svg with the stylesheet embedded", () => {
   assert.match(svg, /--pele-surface: #eae7e7/);
 });
 
+test("--scheme dark -o fixes the exported svg to dark", () => {
+  const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
+  const result = run(fixture("flow.mmd"), fixture("theme.css"), "--scheme", "dark", "-o", out);
+  assert.equal(result.status, 0, result.stderr);
+  const svg = readFileSync(out, "utf8");
+  assert.match(svg, /@media \(min-width: 0px\)/);
+  assert.doesNotMatch(svg, /prefers-color-scheme/);
+});
+
 test("a broken diagram exits 1 with its location", () => {
   const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
   const result = run(fixture("broken.mmd"), "-o", out);

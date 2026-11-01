@@ -78,3 +78,47 @@ test("describeError handles non-Error throws and empty messages", () => {
   assert.equal(describeError("boom", "d.mmd"), "boom");
   assert.ok(describeError(new Error(""), "d.mmd").length > 0);
 });
+
+// --- color schemes ---------------------------------------------------------
+
+import { applyScheme, readAndComposeAll, SCHEMES } from "../src/compose.js";
+
+const SCHEMED_CSS = [
+  ".pele { --pele-bg: #fff; }",
+  "@media (prefers-color-scheme: dark) { .pele { --pele-bg: #000; } }",
+  "@media screen and (prefers-color-scheme:light) { .pele { --pele-line: red; } }",
+].join("\n");
+
+test("the schemes are auto, light and dark", () => {
+  assert.deepEqual(SCHEMES, ["auto", "light", "dark"]);
+});
+
+test("auto leaves the css alone", () => {
+  assert.equal(applyScheme(SCHEMED_CSS, "auto"), SCHEMED_CSS);
+});
+
+test("dark switches dark rules on and light rules off", () => {
+  const css = applyScheme(SCHEMED_CSS, "dark");
+  assert.match(css, /@media \(min-width: 0px\) \{ \.pele \{ --pele-bg: #000; \} \}/);
+  assert.match(css, /@media screen and \(not \(min-width: 0px\)\) \{/);
+  assert.doesNotMatch(css, /prefers-color-scheme/);
+});
+
+test("light is the mirror image", () => {
+  const css = applyScheme(SCHEMED_CSS, "light");
+  assert.match(css, /@media \(not \(min-width: 0px\)\) \{ \.pele \{ --pele-bg: #000; \} \}/);
+  assert.match(css, /@media screen and \(min-width: 0px\) \{/);
+});
+
+test("compose applies the scheme option", () => {
+  assert.match(compose(FLOW, SCHEMED_CSS, { scheme: "dark" }), /@media \(min-width: 0px\)/);
+  assert.match(compose(FLOW, SCHEMED_CSS), /prefers-color-scheme: dark/);
+});
+
+test("readAndComposeAll gives one svg per scheme", () => {
+  const all = readAndComposeAll({ diagram: fixture("flow.mmd"), stylesheet: fixture("theme.css") });
+  assert.deepEqual(Object.keys(all), SCHEMES);
+  assert.match(all.auto, /prefers-color-scheme: dark/);
+  assert.match(all.dark, /@media \(min-width: 0px\)/);
+  assert.match(all.light, /@media \(not \(min-width: 0px\)\)/);
+});

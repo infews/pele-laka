@@ -3,16 +3,17 @@ import { readFileSync } from "node:fs";
 
 const PAGE = readFileSync(new URL("./page.html", import.meta.url));
 
-// Serves the current render on 127.0.0.1. `render` returns an SVG string or
-// throws; `describe` turns the thrown error into the text shown to the user.
-// A failed render keeps the last good SVG on screen.
-export function startServer({ port = 0, render, describe = (e) => e.message }) {
-  const state = { revision: 0, svg: "", error: null };
+// Serves the current render on 127.0.0.1. `render` returns one SVG per color
+// scheme ({ auto, light, dark }) or throws; `describe` turns the thrown error
+// into the text shown to the user. A failed render keeps the last good SVGs on
+// screen. `scheme` is the one the page starts on.
+export function startServer({ port = 0, render, describe = (e) => e.message, scheme = "auto" }) {
+  const state = { revision: 0, svgs: {}, error: null };
   const listeners = new Set();
 
   const refresh = () => {
     try {
-      state.svg = render();
+      state.svgs = render();
       state.error = null;
     } catch (error) {
       state.error = describe(error);
@@ -23,13 +24,14 @@ export function startServer({ port = 0, render, describe = (e) => e.message }) {
   };
 
   const server = createServer((req, res) => {
-    switch (new URL(req.url, "http://localhost").pathname) {
+    const url = new URL(req.url, "http://localhost");
+    switch (url.pathname) {
       case "/":
         return send(res, "text/html; charset=utf-8", PAGE);
       case "/diagram.svg":
-        return send(res, "image/svg+xml; charset=utf-8", state.svg);
+        return send(res, "image/svg+xml; charset=utf-8", svgFor(url.searchParams.get("scheme")));
       case "/state.json":
-        return send(res, "application/json", JSON.stringify({ revision: state.revision, error: state.error }));
+        return send(res, "application/json", JSON.stringify({ revision: state.revision, error: state.error, scheme }));
       case "/events":
         res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-store" });
         res.write(`data: ${state.revision}\n\n`);
@@ -41,6 +43,8 @@ export function startServer({ port = 0, render, describe = (e) => e.message }) {
         res.end("not found");
     }
   });
+
+  const svgFor = (wanted) => (Object.hasOwn(state.svgs, wanted) ? state.svgs[wanted] : state.svgs.auto) ?? "";
 
   const initial = refresh();
 

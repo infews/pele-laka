@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { SCHEMES } from "./compose.js";
 
 export class UsageError extends Error {}
 export class HelpRequested extends Error {}
@@ -14,6 +15,9 @@ export const USAGE = `usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
   -B, --browser APP    open in a specific app, e.g. "Google Chrome"
       --font FAMILY    font family pele measures labels with (default: sans-serif)
       --font-size N    font size pele measures labels with (default: 16)
+      --scheme MODE    auto | light | dark (default: auto). With -o, light or
+                       dark fixes the SVG to that scheme; auto follows the
+                       viewer. In preview, the scheme the page starts on.
   -h, --help           show this message`;
 
 const OPTIONS = {
@@ -24,6 +28,7 @@ const OPTIONS = {
   browser: { type: "string", short: "B" },
   font: { type: "string" },
   "font-size": { type: "string" },
+  scheme: { type: "string" },
   help: { type: "boolean", short: "h" },
 };
 
@@ -46,6 +51,7 @@ export function parse(argv) {
     browserApp: values.browser ?? null,
     fontFamily: values.font ?? null,
     fontSize: values["font-size"] !== undefined ? wholeNumber(values["font-size"], "--font-size", 1) : null,
+    scheme: oneOf(values.scheme ?? "auto", "--scheme", SCHEMES),
   };
 }
 
@@ -60,6 +66,11 @@ function parseStrict(argv) {
 function readable(path) {
   if (!existsSync(path) || !statSync(path).isFile()) throw new UsageError(`no such file: ${path}`);
   return resolve(path);
+}
+
+function oneOf(text, flag, choices) {
+  if (!choices.includes(text)) throw new UsageError(`${flag} must be one of ${choices.join(", ")}, got: ${text}`);
+  return text;
 }
 
 function wholeNumber(text, flag, min, max = Infinity) {

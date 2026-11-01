@@ -1,20 +1,56 @@
 import { readFileSync } from "node:fs";
 import { render, PeleError } from "pele";
 
+export const SCHEMES = ["auto", "light", "dark"];
+
 // Renders a diagram with pele and embeds `css` inside the SVG, so the file
-// carries its own styling wherever it is opened.
-export function compose(mmd, css = "", { fontFamily, fontSize } = {}) {
+// carries its own styling wherever it is opened. `scheme` other than "auto"
+// fixes the CSS to light or dark (see applyScheme).
+export function compose(mmd, css = "", { fontFamily, fontSize, scheme = "auto" } = {}) {
+  return styled(draw(mmd, { fontFamily, fontSize }), css, scheme);
+}
+
+export function readAndCompose({ diagram, stylesheet, fontFamily, fontSize, scheme }) {
+  const { mmd, css } = read(diagram, stylesheet);
+  return compose(mmd, css, { fontFamily, fontSize, scheme });
+}
+
+// One SVG per scheme, from a single read and a single pele render, so the
+// preview can switch schemes without the variants drifting apart.
+export function readAndComposeAll({ diagram, stylesheet, fontFamily, fontSize }) {
+  const { mmd, css } = read(diagram, stylesheet);
+  const svg = draw(mmd, { fontFamily, fontSize });
+  return Object.fromEntries(SCHEMES.map((scheme) => [scheme, styled(svg, css, scheme)]));
+}
+
+// A page cannot force `prefers-color-scheme`, so a fixed scheme is applied by
+// rewriting the CSS: each `(prefers-color-scheme: X)` becomes a condition that
+// is always true when X is the chosen scheme and never true otherwise.
+const ALWAYS = "(min-width: 0px)";
+const NEVER = "(not (min-width: 0px))";
+const COLOR_SCHEME_QUERY = /\(\s*prefers-color-scheme\s*:\s*(light|dark)\s*\)/gi;
+
+export function applyScheme(css, scheme) {
+  if (scheme === "auto") return css;
+  return css.replace(COLOR_SCHEME_QUERY, (_, wanted) => (wanted.toLowerCase() === scheme ? ALWAYS : NEVER));
+}
+
+function read(diagram, stylesheet) {
+  return {
+    mmd: readFileSync(diagram, "utf8"),
+    css: stylesheet ? readFileSync(stylesheet, "utf8") : "",
+  };
+}
+
+function draw(mmd, { fontFamily, fontSize }) {
   const options = {};
   if (fontFamily) options.fontFamily = fontFamily;
   if (fontSize) options.fontSize = fontSize;
-
-  const { svg } = render(mmd, options);
-  return css.trim() ? embed(svg, css) : svg;
+  return render(mmd, options).svg;
 }
 
-export function readAndCompose({ diagram, stylesheet, fontFamily, fontSize }) {
-  const css = stylesheet ? readFileSync(stylesheet, "utf8") : "";
-  return compose(readFileSync(diagram, "utf8"), css, { fontFamily, fontSize });
+function styled(svg, css, scheme) {
+  return css.trim() ? embed(svg, applyScheme(css, scheme)) : svg;
 }
 
 export function describeError(error, file) {

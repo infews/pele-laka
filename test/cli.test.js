@@ -9,7 +9,7 @@ const css = new URL("./fixtures/theme.css", import.meta.url).pathname;
 test("diagram only: preview defaults", () => {
   assert.deepEqual(parse([flow]), {
     diagram: flow, stylesheet: null, output: null, port: 0,
-    open: true, browserApp: null, fontFamily: null, fontSize: null,
+    open: true, browserApp: null, fontFamily: null, fontSize: null, scheme: "auto",
   });
 });
 
@@ -66,4 +66,10 @@ test("port must be 0-65535", () => {
 test("font size must be at least 1", () => {
   assert.throws(() => parse([flow, "--font-size", "0"]), (e) => e instanceof UsageError && /--font-size/.test(e.message));
   assert.equal(parse([flow, "--font-size", "1"]).fontSize, 1);
+});
+
+test("--scheme picks auto, light or dark", () => {
+  assert.equal(parse([flow, "--scheme", "dark"]).scheme, "dark");
+  assert.equal(parse([flow, "--scheme", "light"]).scheme, "light");
+  assert.throws(() => parse([flow, "--scheme", "blue"]), (e) => e instanceof UsageError && /--scheme must be one of auto, light, dark/.test(e.message));
 });

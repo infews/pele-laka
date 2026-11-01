@@ -45,6 +45,7 @@ pele-preview DIAGRAM.mmd [STYLE.css] [options]
   -B, --browser APP    open in a specific app, e.g. "Google Chrome"
       --font FAMILY    font family pele measures labels with (default: sans-serif)
       --font-size N    font size pele measures labels with (default: 16)
+      --scheme MODE    auto | light | dark (default: auto)
   -h, --help           show usage
 ```
 
@@ -93,9 +94,9 @@ Read both files, `compose`, write `--output`. On `PeleError` print
 
 - `server.js` binds `127.0.0.1` on `--port`. Routes:
   - `GET /` — `page.html`
-  - `GET /diagram.svg` — current composed SVG (re-read and re-composed from disk
+  - `GET /diagram.svg?scheme=X` — current composed SVG for that scheme (re-read and re-composed from disk
     on each change, cached between changes)
-  - `GET /state.json` — `{ revision, error }` where error is null or a
+  - `GET /state.json` — `{ revision, error, scheme }` where error is null or a
     preformatted string: `file:line:column: message` (or `file: message`
     when pele reports no position). pele's message already includes the
     source snippet, so the page shows the string as-is.
@@ -106,15 +107,31 @@ Read both files, `compose`, write `--output`. On `PeleError` print
 - On change: re-read both files, try `compose`. Success replaces the cached SVG
   and clears the error. Failure keeps the last good SVG and records the error.
   Revision increments either way.
-- `page.html` inlines the SVG into the page (so `prefers-color-scheme` follows
+- `page.html` inlines the chosen scheme's SVG into the page (in `auto`, `prefers-color-scheme` follows
   the viewer), listens on `/events`, re-fetches on each revision, and on error
-  shows the message above the last good diagram, greyed out. The page itself
-  is always light; it paints the SVG's own `--pele-bg` (white by default)
-  behind the diagram so light and dark themes both read. Apart from that
-  background, the page adds no CSS that targets the diagram; the user's CSS
+  shows the message above the last good diagram, greyed out. The page paints
+  the SVG's own `--pele-bg` (white by default) behind the diagram. Apart from
+  that background, the page adds no CSS that targets the diagram; the user's CSS
   travels only inside the SVG.
 - Prints the URL; opens a browser unless `--no-open`. `Ctrl-C` closes the server
   and watchers.
+
+## Color schemes (added 2026-11-01)
+
+A page cannot force `prefers-color-scheme`, so a fixed scheme is applied by
+rewriting the user's CSS when it is embedded (`applyScheme` in compose.js):
+each `(prefers-color-scheme: X)` becomes `(min-width: 0px)` (always true) when
+X is the chosen scheme and `(not (min-width: 0px))` (never true) otherwise.
+`auto` leaves the CSS untouched.
+
+- `--scheme auto|light|dark`, default `auto`. With `-o`, light/dark fixes the
+  exported SVG to that scheme. In preview, it is the page's starting scheme
+  (reported as `scheme` in `/state.json`).
+- In preview, `render()` returns `{ auto, light, dark }` from one read and one
+  pele render (`readAndComposeAll`); `/diagram.svg?scheme=X` serves that
+  variant (unknown or missing → `auto`).
+- The page has an Auto / Light / Dark toggle; the page's own colors follow it,
+  and the diagram area is painted with the SVG's `--pele-bg`.
 
 ## Error handling
 
