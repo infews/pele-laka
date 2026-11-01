@@ -1,0 +1,69 @@
+#!/usr/bin/env node
+import { writeFileSync } from "node:fs";
+import { parse, UsageError, HelpRequested } from "../src/cli.js";
+import { readAndCompose, describeError } from "../src/compose.js";
+import { startServer } from "../src/server.js";
+import { watchFiles } from "../src/watcher.js";
+import { launch } from "../src/browser.js";
+
+const options = parseOrExit(process.argv.slice(2));
+const render = () => readAndCompose(options);
+const describe = (error) => describeError(error, options.diagram);
+
+if (options.output) {
+  exportSvg();
+} else {
+  await preview();
+}
+
+function parseOrExit(argv) {
+  try {
+    return parse(argv);
+  } catch (error) {
+    if (error instanceof HelpRequested) {
+      console.log(error.message);
+      process.exit(0);
+    }
+    if (error instanceof UsageError) {
+      console.error(error.message);
+      process.exit(2);
+    }
+    throw error;
+  }
+}
+
+function exportSvg() {
+  try {
+    writeFileSync(options.output, render());
+    console.log(`wrote ${options.output}`);
+  } catch (error) {
+    console.error(describe(error));
+    process.exit(1);
+  }
+}
+
+async function preview() {
+  let server;
+  try {
+    server = await startServer({ port: options.port, render, describe });
+  } catch (error) {
+    console.error(`could not start server: ${error.message}`);
+    process.exit(1);
+  }
+
+  const report = ({ revision, error }) =>
+    error ? console.error(error) : console.log(`rendered (revision ${revision})`);
+  if (server.initial.error) console.error(server.initial.error);
+
+  const files = [options.diagram, options.stylesheet].filter(Boolean);
+  const watcher = watchFiles(files, () => report(server.refresh()));
+
+  console.log(`pele-preview: ${server.url}  (Ctrl-C to stop)`);
+  if (options.open) launch(server.url, { app: options.browserApp });
+
+  process.once("SIGINT", async () => {
+    watcher.close();
+    await server.close();
+    process.exit(0);
+  });
+}
