@@ -1,269 +1,137 @@
-# mmd-preview
+# pele-preview
 
-Live browser preview of a [Mermaid](https://mermaid.js.org) diagram with your own CSS.
-Point it at a `.mmd` file, it opens a page and re-renders whenever you save — the
-diagram or the stylesheet.
-
-```sh
-bin/mmd-preview docs/architecture.mmd theme.css
-```
-
----
-
-## Requirements
-
-| | |
-|---|---|
-| Ruby | 4.0.5 (see `.ruby-version`) |
-| `mmdc` | [mermaid-cli](https://github.com/mermaid-js/mermaid-cli) |
-| A browser | Chrome or Chromium, for `mmdc` to render in |
-
-`mmd-preview` checks all three before it renders anything, and prints the exact
-commands to fix whatever is missing. It only ever detects — it never installs.
-
-## Install
+Live browser preview of a [Mermaid](https://mermaid.js.org) diagram, rendered by
+[pele](https://pele.run), with your own CSS. Point it at a `.mmd` file and it opens
+a page that re-renders whenever you save the diagram or the stylesheet. When you
+are happy, export the same thing as one self-contained SVG.
 
 ```sh
-bundle install
-brew install mermaid-cli        # or: npm install -g @mermaid-js/mermaid-cli
+pele-preview docs/architecture.mmd theme.css                  # live preview
+pele-preview docs/architecture.mmd theme.css -o diagram.svg   # export and exit
 ```
 
-### Giving mmdc a browser
+pele is a pure-JavaScript renderer, so there is no headless browser, no `mmdc`
+and no puppeteer config to wrangle.
 
-`mmdc` drives a headless browser through puppeteer, and puppeteer will not find
-an ordinary Chrome install on its own. If you already have Chrome, point it
-there — create `~/.config/mmd-preview/puppeteer.json`:
+## Requirements and install
 
-```json
-{
-  "executablePath": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-  "headless": "new",
-  "args": ["--font-render-hinting=none"]
-}
-```
-
-Or let puppeteer fetch its own:
+Node 20 or newer. That is all.
 
 ```sh
-npx -y puppeteer browsers install chrome
+npm install && npm link      # or: npm i -g .
 ```
-
-`XDG_CONFIG_HOME` is honoured if set. The file is re-checked on every render, so
-you can write it mid-session without restarting.
 
 ## Usage
 
 ```
-usage: mmd-preview DIAGRAM.mmd [STYLE.css] [options]
-    -c, --css FILE          stylesheet (same as the second positional argument)
-    -t, --theme NAME        mermaid theme: default | forest | dark | neutral
-    -b, --background COLOR  SVG background (default: transparent)
-    -p, --port N            port to serve on (default: ephemeral)
-    -B, --browser NAME      open in a specific app, e.g. "Google Chrome"
-    -n, --no-open           don't open a browser, just print the URL
-    -h, --help              show this message
+usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
+
+  -o, --output FILE    write a self-contained SVG to FILE and exit (no server)
+  -c, --css FILE       stylesheet (same as the second positional argument)
+  -p, --port N         port to serve on (default: ephemeral)
+  -n, --no-open        don't open a browser, just print the URL
+  -B, --browser APP    open in a specific app, e.g. "Google Chrome"
+      --font FAMILY    font family pele measures labels with (default: sans-serif)
+      --font-size N    font size pele measures labels with (default: 16)
+  -h, --help           show this message
 ```
 
-The server is loopback-only and serves out of a temp directory that is removed
-on exit. `Ctrl-C` stops it.
+Exit codes: `0` success, `1` render or I/O failure (export mode), `2` usage error.
+
+A render that fails in preview mode leaves the last good diagram on screen,
+greyed out, with the error above it. Fix the file and it recovers.
 
 ---
 
-## Styling: how your CSS reaches the diagram
+## Styling
 
-This is the part that surprises people, so it is worth reading once.
+Your CSS travels **inside the SVG**, as a `<style>` element, so the exported file
+looks the same everywhere it is opened. The preview page applies no styling of
+its own to the diagram: what you see is what you ship. (The page styles only its
+own chrome, the error banner and the padding around the diagram.)
 
-Your stylesheet is delivered through **two independent channels**, and which
-selectors work depends on which channel can carry them.
+pele's output has no `<style>` of its own. Its defaults are fallbacks written into
+the root `<svg>`'s inline style, such as `--_s:var(--pele-surface,#f3f3f3)`, and
+shapes read them through presentation attributes like `fill="var(--_s)"`. That
+gives you two ways to style, and they combine freely.
 
-### Channel 1 — into the SVG, as mermaid's `themeCSS`
-
-Your file is written into a temporary mermaid config as `themeCSS`. Mermaid
-prefixes **every selector with the diagram's id** and emits the result *after*
-its own theme rules. So `.node rect { … }` becomes `#my-svg .node rect { … }`.
-
-This is the channel that matters, because mermaid's own theme CSS is scoped the
-same way:
+### 1. Set pele's variables on `.pele`
 
 ```css
-#my-svg .node rect, … { fill:#ECECFF; stroke:#9370DB; stroke-width:1px; }  /* theme */
-#my-svg .node rect     { stroke-width: 2px; }                              /* yours */
-```
+.pele { --pele-surface: #eae7e7; --pele-accent: #205ea6; }
 
-Equal specificity, yours emitted later — so **yours wins, with no `!important`
-needed**. A bare `.node rect` rule delivered any other way would lose: one id
-beats any number of classes, whatever the order.
-
-### Channel 2 — into the page, as a linked stylesheet
-
-The same file is also served as `user.css` and linked by the preview page. The
-SVG is inlined into that page, inside `<div class="stage mermaid">`.
-
-This channel reaches everything *outside* the SVG, and it is where `:root` and
-`@media` actually work.
-
-### What works where
-
-| What you write | Channel 1 (SVG) | Channel 2 (page) | Result |
-|---|---|---|---|
-| `.node rect { … }` | ✅ scoped, beats theme | applies but outranked | **works, no `!important`** |
-| `:root { --tok: … }` | ✗ becomes `#my-svg :root`, matches nothing | ✅ | **declare tokens here** |
-| `.mermaid .node rect { … }` | ✗ no `.mermaid` inside the SVG | ✅ | works, but needs `!important` |
-| `body`, `.canvas`, `.bar` | ✗ outside the SVG | ✅ | styles the preview frame |
-| `@media (prefers-color-scheme: dark)` | ✅ | ✅ | works |
-| `@import url(…)` | ✗ rejected outright | ✅ | see *Fonts* below |
-
-### The recommended recipe
-
-Plain mermaid selectors, with tokens on `:root`. Custom properties inherit from
-`<html>` down into the inlined SVG, so a token declared in channel 2 resolves
-inside a rule delivered by channel 1:
-
-```css
-:root {
-  --diagram-ink:  #201e1d;
-  --diagram-fill: #eae7e7;
-}
 @media (prefers-color-scheme: dark) {
-  :root { --diagram-ink: #bab6b6; --diagram-fill: #383535; }
+  .pele { --pele-surface: #383535; }
 }
-
-.node rect {
-  fill: var(--diagram-fill);
-  stroke: var(--diagram-ink);
-  stroke-width: 2px;
-}
-.edgePath .path, .flowchart-link { stroke: var(--diagram-ink); stroke-width: 2px; }
-.cluster rect                    { fill: none; stroke: var(--diagram-ink); }
-.nodeLabel, .edgeLabel           { font-family: "IBM Plex Sans", sans-serif; }
 ```
 
-No `!important` anywhere.
+| Variable | What it controls |
+|---|---|
+| `--pele-bg`, `--pele-fg` | background and text |
+| `--pele-muted` | secondary text |
+| `--pele-line` | edges and arrows |
+| `--pele-surface`, `--pele-surface-alt` | node fills |
+| `--pele-border` | node outlines |
+| `--pele-accent`, `--pele-critical` | highlights and warnings |
+| `--pele-radius` | corner radius |
+| `--pele-font`, `--pele-font-mono` | text and monospace families |
+| `--pele-series-1` ... `--pele-series-8` | chart series colors |
 
-### If you already have a browser-embed stylesheet
+The full list, and which diagram types use which, is in the upstream
+[theming docs](https://pele.run/theming).
 
-Most published "mermaid stylesheets" are written for mermaid running *in a
-browser*, where `mermaid.initialize()` renders into `<div class="mermaid">`.
-Every selector in them is `.mermaid`-prefixed:
+### 2. Target pele's classes
+
+`.pele-node`, `.pele-edge`, `.pele-label`, `.pele-cluster` and friends are
+ordinary classes on ordinary SVG elements:
 
 ```css
-.mermaid g.node rect { fill: var(--x) !important; }
+.pele-node > rect { stroke-width: 2px; }
 ```
 
-Those work here unchanged — the preview page puts `class="stage mermaid"` on the
-diagram container precisely so they do. They rely on channel 2, which is why
-they need their `!important` (they are competing with an id-scoped theme) and
-why their `:root` tokens resolve normally.
+Because pele sets colors as presentation attributes, and any CSS rule beats a
+presentation attribute, **a plain selector wins with no `!important`**.
 
-You do **not** need to rewrite such a sheet. Just know that it styles the
-preview, not the SVG that `mmdc` writes.
+`@media (prefers-color-scheme: dark)` works in the shipped file, so one SVG can
+carry both themes.
 
 ---
 
 ## Gotchas
 
-**Fonts must be installed locally.** An `@import` of Google Fonts is rejected in
-channel 1 (`@import rules are not allowed here` — mermaid injects themeCSS as a
-constructed stylesheet, which forbids it). Even where it is honoured, `mmdc`
-does not embed font files into the SVG. Install the family on the machine and
-name it in `font-family`.
+**Match the font you measure with.** pele sizes each label in Node, from a built-in
+width table for one font family (default `sans-serif`, 16px). If your CSS sets
+`--pele-font` to something with very different widths, labels will not fit their
+boxes. Pass the same family to the renderer:
 
-**Don't reuse the frame's token names.** The preview page declares
-`--paper`, `--ink`, `--muted`, `--rule`, and `--fail` on `:root` for its own
-chrome. A `:root { --ink: … }` in your sheet will recolor the toolbar along with
-your diagram. Prefix your tokens.
-
-**`!important` on label text defeats `classDef`.** Mermaid compiles a `classDef`
-into id-scoped `!important` rules, but only for three targets:
-
-```css
-#my-svg .hidden>*   { fill:none!important; stroke:none!important; color:transparent!important; }
-#my-svg .hidden span{ fill:none!important; stroke:none!important; color:transparent!important; }
-#my-svg .hidden tspan{ fill:transparent!important; }
+```sh
+pele-preview flow.mmd theme.css --font "Helvetica" --font-size 14
 ```
 
-The text itself lives one level deeper, in `<span class="nodeLabel"><p>…</p></span>`,
-and that `<p>` only ever *inherits* the transparency. An inherited value loses to
-any rule that matches the element directly — so a sheet containing
+`--font` sets pele's `fontFamily`, which lands in the SVG as
+`font-family:var(--pele-font,<family>)`, so it is also the fallback when your CSS
+does not set the variable. Fonts are never embedded: viewers need the family
+installed.
 
-```css
-.mermaid .node foreignObject p { color: var(--ink) !important; }   /* too broad */
-```
+**Some properties only move through their variable.** pele applies the corner
+radius with an inline `style="rx:var(--_r)"`, and inline style beats any
+stylesheet rule. `.pele-node rect { rx: 12 }` does nothing; set `--pele-radius`.
 
-re-exposes the text of every `classDef`-hidden node. The shape is invisible, the
-label is not. If you hide nodes this way, hide the whole subtree instead of
-fighting each text layer:
+**`style` and `classDef` in the diagram ignore the theme.** They write fixed
+colors, so `--pele-surface` will not reach a node that has one. Use them for
+deliberate one-offs, or give the node a class and style that from your sheet.
 
-```css
-.mermaid g.node.hidden { visibility: hidden !important; }
-```
-
-That leaves layout — and the edges into the node, which live outside the node
-group — untouched.
-
-**`-t base` is not available.** `mmdc` accepts only `default`, `forest`, `dark`,
-and `neutral`. `base` — the theme meant to be overridden — can still be selected
-from the diagram's own frontmatter:
-
-```yaml
----
-config:
-  theme: base
----
-```
-
-**Frontmatter beats the flags.** A `config:` block in the diagram overrides `-t`.
-A diagram declaring `theme: base` renders with `base` even under `-t dark`. Your
-stylesheet is unaffected: `themeCSS` survives frontmatter and stays ordered after
-the theme.
-
----
-
-## Live reload
-
-The diagram and the stylesheet are both watched. On any change:
-
-- the diagram is re-rendered by `mmdc`, with your CSS re-read from disk each time
-- the page polls `state.json`, notices the new revision, and re-fetches the SVG
-- the linked stylesheet is re-requested as `user.css?rev=N`
-
-That last step matters: a `<link>` is fetched once at page load and never again
-on its own, so without the revision key a rule you *deleted* would keep applying
-until a manual reload.
-
-A render that fails leaves the last good diagram on screen, greyed out, with
-`mmdc`'s output shown above it. The revision still advances, so a CSS-only edit
-lands even while the diagram is broken.
+**Pasting the SVG into an HTML page leaks the styles.** The embedded `<style>`
+applies to the *whole* document once the SVG is inline, so `.pele { ... }` rules
+can hit other content. Prefer `<img src="diagram.svg">` or `<object>`, which keep
+the stylesheet scoped to the SVG. (The preview page inlines the SVG, so the same
+applies there: that is fine for previewing, but treat the exported file as the
+truth.)
 
 ---
 
 ## Development
 
 ```sh
-bundle exec rake          # standard:fix, then the full suite
-bundle exec rake test
-bundle exec rake standard
+npm test
 ```
-
-Specs live in `test/`, one per class, and stub `Open3` so nothing shells out —
-except `test/integration/styling_spec.rb`, which runs the **real** `mmdc` and
-asserts that your CSS comes out scoped and ordered so it wins the cascade. That
-one exists because a stubbed argv cannot tell you whether the resulting CSS
-actually styles anything: an earlier version passed `mmdc -C` with a perfectly
-correct command line and produced diagrams that ignored the stylesheet entirely.
-It skips, rather than fails, when `mmdc` or its browser is unavailable.
-
-## Known issues
-
-**The watcher watches whole directories.** `Watcher#directories` hands each
-file's parent to [listen](https://github.com/guard/listen), which watches
-recursively. Keeping your stylesheet somewhere like `~/Downloads` makes it scan
-that entire tree and log warnings:
-
-```
-** ERROR: directory is already being watched! **
-Directory: …/Downloads/Some.app/Contents/Frameworks/…
-```
-
-Renders are unaffected. Scoping the listener with `only:` regexes for the two
-filenames would fix it.
