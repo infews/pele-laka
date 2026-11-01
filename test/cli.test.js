@@ -56,3 +56,14 @@ test("unknown flags are usage errors", () => {
 test("-h asks for help even without a diagram", () => {
   assert.throws(() => parse(["-h"]), HelpRequested);
 });
+
+test("port must be 0-65535", () => {
+  assert.throws(() => parse([flow, "-p", "70000"]), (e) => e instanceof UsageError && /--port/.test(e.message));
+  assert.equal(parse([flow, "-p", "65535"]).port, 65535);
+  assert.equal(parse([flow, "-p", "0"]).port, 0);
+});
+
+test("font size must be at least 1", () => {
+  assert.throws(() => parse([flow, "--font-size", "0"]), (e) => e instanceof UsageError && /--font-size/.test(e.message));
+  assert.equal(parse([flow, "--font-size", "1"]).fontSize, 1);
+});

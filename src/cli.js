@@ -41,11 +41,11 @@ export function parse(argv) {
     diagram: readable(diagram),
     stylesheet: stylesheet ? readable(stylesheet) : null,
     output: values.output ? resolve(values.output) : null,
-    port: wholeNumber(values.port ?? "0", "--port"),
+    port: wholeNumber(values.port ?? "0", "--port", 0, 65535),
     open: !values["no-open"],
     browserApp: values.browser ?? null,
     fontFamily: values.font ?? null,
-    fontSize: values["font-size"] ? wholeNumber(values["font-size"], "--font-size") : null,
+    fontSize: values["font-size"] !== undefined ? wholeNumber(values["font-size"], "--font-size", 1) : null,
   };
 }
 
@@ -62,7 +62,12 @@ function readable(path) {
   return resolve(path);
 }
 
-function wholeNumber(text, flag) {
+function wholeNumber(text, flag, min, max = Infinity) {
   if (!/^\d+$/.test(text)) throw new UsageError(`${flag} must be a whole number, got: ${text}`);
-  return Number(text);
+  const n = Number(text);
+  if (n < min || n > max) {
+    const range = max === Infinity ? `at least ${min}` : `between ${min} and ${max}`;
+    throw new UsageError(`${flag} must be ${range}, got: ${text}`);
+  }
+  return n;
 }
