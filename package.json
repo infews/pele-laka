@@ -1,0 +1,11 @@
+{
+  "name": "pele-preview",
+  "version": "0.1.0",
+  "description": "Preview or export a Mermaid diagram rendered by pele, with your own CSS embedded in the SVG.",
+  "type": "module",
+  "bin": { "pele-preview": "bin/pele-preview" },
+  "files": ["bin", "src"],
+  "engines": { "node": ">=20" },
+  "scripts": { "test": "node --test" },
+  "dependencies": { "pele": "^1.13.0" }
+}
