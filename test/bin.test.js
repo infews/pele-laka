@@ -37,19 +37,23 @@ test("--help prints usage and exits 0", () => {
   assert.match(result.stdout, /^usage: pele-preview/);
 });
 
-test("preview mode serves the composed svg", async () => {
+test("preview mode serves the composed svg and exits 0 on SIGINT", { timeout: 5000 }, async () => {
   const child = spawn(process.execPath, [bin, fixture("flow.mmd"), fixture("theme.css"), "-n"]);
+  const exited = new Promise((resolve) => child.once("exit", (code, signal) => resolve({ code, signal })));
   try {
     const url = await new Promise((resolve, reject) => {
       child.stdout.on("data", (chunk) => {
         const match = String(chunk).match(/http:\/\/127\.0\.0\.1:\d+\//);
         if (match) resolve(match[0]);
       });
-      child.on("exit", (code) => reject(new Error(`exited ${code}`)));
+      exited.then(({ code }) => reject(new Error(`exited ${code}`)));
     });
     const svg = await (await fetch(`${url}diagram.svg`)).text();
     assert.match(svg, /--pele-surface: #eae7e7/);
-  } finally {
+
     child.kill("SIGINT");
+    assert.deepEqual(await exited, { code: 0, signal: null });
+  } finally {
+    if (child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
   }
 });
