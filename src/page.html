@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pele-preview</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { margin: 0; font: 13px system-ui, sans-serif; }
+  #pp-error { display: none; margin: 0; padding: 12px 16px; white-space: pre-wrap;
+              font: 12px ui-monospace, monospace; background: #fde8e8; color: #8a1c1c; }
+  #pp-error.shown { display: block; }
+  #pp-stage { padding: 24px; }
+  #pp-stage.stale { opacity: .35; filter: grayscale(1); }
+</style>
+</head>
+<body>
+<pre id="pp-error"></pre>
+<div id="pp-stage"></div>
+<script type="module">
+  // The page styles only its own chrome (ids prefixed pp-). The diagram's
+  // styling arrives inside the SVG, exactly as it will ship.
+  const stage = document.getElementById("pp-stage");
+  const error = document.getElementById("pp-error");
+  let shown = -1;
+
+  async function update() {
+    const state = await (await fetch("/state.json", { cache: "no-store" })).json();
+    if (state.revision === shown) return;
+    shown = state.revision;
+    stage.innerHTML = await (await fetch(`/diagram.svg?rev=${state.revision}`)).text();
+    error.textContent = state.error ?? "";
+    error.classList.toggle("shown", Boolean(state.error));
+    stage.classList.toggle("stale", Boolean(state.error));
+  }
+
+  new EventSource("/events").onmessage = update;
+</script>
+</body>
+</html>

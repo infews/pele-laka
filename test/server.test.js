@@ -1,0 +1,66 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { startServer } from "../src/server.js";
+
+const get = async (url) => {
+  const res = await fetch(url);
+  return { status: res.status, type: res.headers.get("content-type"), body: await res.text() };
+};
+
+test("serves page, diagram and state on loopback", async () => {
+  const server = await startServer({ port: 0, render: () => "<svg>one</svg>" });
+  try {
+    assert.match(server.url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
+    assert.deepEqual(server.initial, { revision: 1, error: null });
+
+    const page = await get(server.url);
+    assert.equal(page.status, 200);
+    assert.match(page.body, /EventSource\("\/events"\)/);
+
+    const svg = await get(`${server.url}diagram.svg`);
+    assert.equal(svg.type, "image/svg+xml; charset=utf-8");
+    assert.equal(svg.body, "<svg>one</svg>");
+
+    assert.deepEqual(JSON.parse((await get(`${server.url}state.json`)).body), { revision: 1, error: null });
+    assert.equal((await get(`${server.url}nope`)).status, 404);
+  } finally {
+    await server.close();
+  }
+});
+
+test("a failed render keeps the last good svg and reports the error", async () => {
+  let fail = false;
+  const server = await startServer({
+    port: 0,
+    render: () => { if (fail) throw new Error("boom"); return "<svg>good</svg>"; },
+    describe: (e) => `d.mmd: ${e.message}`,
+  });
+  try {
+    fail = true;
+    const state = server.refresh();
+    assert.equal(state.revision, 2);
+    assert.equal(state.error, "d.mmd: boom");
+    assert.equal((await get(`${server.url}diagram.svg`)).body, "<svg>good</svg>");
+    assert.deepEqual(JSON.parse((await get(`${server.url}state.json`)).body), { revision: 2, error: "d.mmd: boom" });
+  } finally {
+    await server.close();
+  }
+});
+
+test("refresh pushes the new revision to event listeners", async () => {
+  let n = 0;
+  const server = await startServer({ port: 0, render: () => `<svg>${++n}</svg>` });
+  try {
+    const res = await fetch(`${server.url}events`);
+    assert.equal(res.headers.get("content-type"), "text/event-stream");
+    const reader = res.body.getReader();
+    const next = async () => new TextDecoder().decode((await reader.read()).value);
+
+    assert.equal(await next(), "data: 1\n\n");
+    server.refresh();
+    assert.equal(await next(), "data: 2\n\n");
+    await reader.cancel();
+  } finally {
+    await server.close();
+  }
+});
