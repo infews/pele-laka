@@ -14,23 +14,26 @@ export function watchFiles(paths, onChange, { delay = 100 } = {}) {
     timer = setTimeout(() => closed || onChange(), delay);
   };
 
-  const attach = (path) => {
+  // A retry that succeeds means the file came back (e.g. deleted, then
+  // recreated); report it, since the change that removed it already fired.
+  const attach = (path, retry = false) => {
     if (closed) return;
     try {
       const watcher = watch(path, (event) => {
         changed();
         if (event === "rename") {
           watcher.close();
-          setTimeout(() => attach(path), delay);
+          setTimeout(() => attach(path, true), delay);
         }
       });
       watchers.set(path, watcher);
+      if (retry) changed();
     } catch {
-      setTimeout(() => attach(path), delay); // file briefly absent mid-save
+      setTimeout(() => attach(path, true), delay); // file absent (mid-save or deleted)
     }
   };
 
-  paths.forEach(attach);
+  paths.forEach((path) => attach(path));
 
   return {
     close() {

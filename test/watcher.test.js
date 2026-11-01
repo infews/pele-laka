@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync, renameSync } from "node:fs";
+import { mkdtempSync, writeFileSync, renameSync, unlinkSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
@@ -55,4 +55,20 @@ test("close stops callbacks", async () => {
   writeFileSync(path, "b");
   await sleep(150);
   assert.equal(calls, 0);
+});
+
+test("a deleted file that is later recreated triggers a callback", async () => {
+  const path = tempFile();
+  const seen = [];
+  const watcher = watchFiles([path], () => seen.push(existsSync(path)), { delay: 50 });
+  try {
+    await sleep(50);
+    unlinkSync(path);
+    await sleep(300);
+    writeFileSync(path, "back");
+    await sleep(300);
+    assert.ok(seen.includes(true), `a callback saw the recreated file (saw ${JSON.stringify(seen)})`);
+  } finally {
+    watcher.close();
+  }
 });
