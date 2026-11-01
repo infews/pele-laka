@@ -36,6 +36,8 @@ usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
       --scheme MODE    auto | light | dark (default: auto). With -o, light or
                        dark fixes the SVG to that scheme; auto follows the
                        viewer. In preview, the scheme the page starts on.
+      --palette NAME   pick one of the stylesheet's [data-pele-scheme="NAME"]
+                       palettes (default: the stylesheet's own default)
   -h, --help           show this message
 ```
 
@@ -121,8 +123,100 @@ The preview page has an **Auto / Light / Dark** toggle in the top-right corner;
 `--scheme` picks where it starts. The page's own colors follow the toggle, and
 each position shows exactly the SVG that `-o` with that `--scheme` would write.
 
+If your colors are `light-dark()` pairs, as in `pele-plex.css`, decide the
+`color-scheme` they resolve against with the same media query, so `--scheme`
+can pin it:
+
+```css
+.pele { color-scheme: light; }
+@media (prefers-color-scheme: dark) { .pele { color-scheme: dark; } }
+```
+
+(`color-scheme: light dark` also follows the OS, but no media query is involved,
+so `--scheme` and the toggle cannot reach it.)
+
+### Palettes
+
+A stylesheet can offer several palettes as `[data-pele-scheme="NAME"]` blocks, as
+`pele-plex.css` does with `carbon`, `paper`, `harbor` and `moss`. In a web page you
+would put that attribute on the diagram's container; here nothing wraps the SVG,
+so `--palette NAME` writes it onto the root `<svg>` itself:
+
+```sh
+pele-preview diagram.mmd pele-plex.css --palette paper --scheme dark -o diagram.svg
+```
+
+Without `--palette` the stylesheet's default applies (for `pele-plex.css`, the
+one also declared on `:root`). A name the stylesheet doesn't define still
+exports, with a warning on stderr.
+
+The preview page finds the palettes by scanning your stylesheet for
+`data-pele-scheme` selectors and offers them in a **Palette** menu next to the
+scheme toggle (hidden when there are none). `--palette` picks where it starts;
+the list updates when you edit the stylesheet.
+
 Without a stylesheet there is nothing to switch: pele's defaults are a light
 theme, so Dark shows the light diagram on a dark page.
+
+---
+
+## Coloring nodes and subgraphs (`pele-plex.css`)
+
+`pele-plex.css` is an IBM Plex theme for pele. Use it as the stylesheet, and
+pick a palette (`carbon`, the default, `paper`, `harbor` or `moss`) with
+`--palette`:
+
+```sh
+pele-preview diagram.mmd pele-plex.css --palette harbor
+```
+
+The eight series colors are available as classes named `tone-1` … `tone-8`. You don't need any `classDef`.
+
+| Target | Syntax |
+|---|---|
+| One node | `A[Text]:::tone-1` |
+| Several nodes | `class A,B,C tone-2` |
+| A subgraph | `class SubgraphId tone-3` (use the subgraph's id) |
+| Solid fill on a node | Give it a tone, then add `class A solid` on its own line |
+
+```mermaid
+flowchart LR
+  A[Ingest]:::tone-1 --> B{Valid?}:::tone-2
+  B --> C[(Store)]
+  B --> D[Alert]:::tone-4
+
+  subgraph Pipeline
+    C
+  end
+
+  class C tone-3
+  class D solid
+  class Pipeline tone-6
+```
+
+### Rules
+
+1. **One class per `:::`.** `A:::tone-4:::solid` is a parse error.
+2. **Subgraphs can't use `:::`.** Apply the class with a `class` line instead.
+3. **One class per `class` line.** That's why `solid` needs its own line, separate from the tone.
+4. **Colors follow the theme.** Tones read the current scheme's `--pele-series-1…8`, so they change with the scheme and with light/dark mode without re-rendering.
+5. **Avoid `classDef` and `style` for these.** Colors set that way are fixed hex values that don't change with the theme. They also override the tone styling on that node. Mermaid's parser rejects `var(...)`, so you can't use those to reference theme colors.
+
+### What each one looks like
+
+| Class | Fill | Outline | Text |
+|---|---|---|---|
+| `tone-N` on a node | 18% tint of the color | Full color | Normal foreground |
+| `tone-N` + `solid` | Full color | Full color | Background color |
+| `tone-N` on a subgraph | 9% tint, opaque | Full color | Title in full color |
+
+The tint strengths are adjustable with `--plex-tone-node-mix` and `--plex-tone-cluster-mix`.
+
+### Edge cases
+
+- **`solid` without a tone** falls back to the scheme's accent color.
+- **Moved subgraph titles keep the default color.** If a subgraph's title would cross an edge, Pele draws it outside the subgraph's group, so the tone class doesn't reach it.
+- **Some carbon tones are weak in dark mode.** Tone 6 is near-white, so a tone-6 subgraph barely tints. Solid tone 1 has only fair text contrast.
 
 ---
 
@@ -151,7 +245,14 @@ instead of reaching for `!important`.
 colors, so `--pele-surface` will not reach a node that has one. Use them for
 deliberate one-offs, or give the node a class and style that from your sheet:
 `class A hot` in the diagram puts `hot` on the node's `<g>`, so
-`.pele-node.hot > rect { fill: var(--pele-critical); }` follows the theme.
+`.pele-node.hot > rect { fill: var(--pele-critical, #e45756); }` follows the theme.
+
+**pele never defines its own `--pele-*` variables.** Its defaults live only as
+fallbacks inside its inline styles (`var(--pele-surface,#f3f3f3)`). So
+`var(--pele-critical)` in your CSS resolves to nothing unless your stylesheet
+sets `--pele-critical` itself, and the property silently falls back to its
+inherited value (for `fill`, near-black). Give every `var(--pele-…)` you use a
+fallback, as above, or define the variables, as `pele-plex.css` does.
 
 **Pasting the SVG into an HTML page leaks the styles.** The embedded `<style>`
 applies to the *whole* document once the SVG is inline, so `.pele { ... }` rules
