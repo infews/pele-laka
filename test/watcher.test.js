@@ -48,13 +48,32 @@ test("keeps watching after an editor replaces the file by rename", async () => {
   }
 });
 
-test("close stops callbacks", async () => {
+test("close stops callbacks, even with a change pending", async () => {
   const path = tempFile();
   let calls = 0;
-  watchFiles([path], () => calls++, { delay: 20 }).close();
+  const watcher = watchFiles([path], () => calls++, { delay: 200 });
+  await sleep(50);
   writeFileSync(path, "b");
-  await sleep(150);
+  await sleep(50); // let the event arrive and start the debounce timer
+  watcher.close(); // ...then close before the timer expires
+  await sleep(400);
   assert.equal(calls, 0);
+});
+
+test("a burst across both watched files produces one callback", async () => {
+  const diagram = tempFile();
+  const stylesheet = tempFile();
+  let calls = 0;
+  const watcher = watchFiles([diagram, stylesheet], () => calls++, { delay: 50 });
+  try {
+    await sleep(50);
+    writeFileSync(diagram, "b");
+    writeFileSync(stylesheet, "b");
+    await sleep(300);
+    assert.equal(calls, 1);
+  } finally {
+    watcher.close();
+  }
 });
 
 test("a deleted file that is later recreated triggers a callback", async () => {
