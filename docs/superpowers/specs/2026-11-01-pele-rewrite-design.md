@@ -95,8 +95,10 @@ Read both files, `compose`, write `--output`. On `PeleError` print
   - `GET /` — `page.html`
   - `GET /diagram.svg` — current composed SVG (re-read and re-composed from disk
     on each change, cached between changes)
-  - `GET /state.json` — `{ revision, error }` where error is null or
-    `{ message, line, column, snippet }`
+  - `GET /state.json` — `{ revision, error }` where error is null or a
+    preformatted string: `file:line:column: message` (or `file: message`
+    when pele reports no position). pele's message already includes the
+    source snippet, so the page shows the string as-is.
   - `GET /events` — Server-Sent Events; sends `revision` on each re-render
 - `watcher.js` uses `fs.watch` on the two files (not their directories),
   debounced ~100ms, and re-attaches after editors that replace files via
