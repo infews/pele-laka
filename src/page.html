@@ -15,7 +15,10 @@
 
   body { margin: 0; font: 13px system-ui, sans-serif; background: var(--pp-paper); color: var(--pp-ink); }
 
-  #pp-bar { display: flex; justify-content: flex-end; padding: 8px 12px; }
+  #pp-bar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 8px 12px; }
+  #pp-palette-wrap[hidden] { display: none; }
+  #pp-palette { font: inherit; padding: 3px 6px; border: 1px solid var(--pp-rule); border-radius: 6px;
+                background: var(--pp-paper); color: inherit; }
   #pp-scheme { display: inline-flex; border: 1px solid var(--pp-rule); border-radius: 6px; overflow: hidden; }
   #pp-scheme button { font: inherit; padding: 4px 10px; border: 0; background: transparent; color: inherit; cursor: pointer; }
   #pp-scheme button + button { border-left: 1px solid var(--pp-rule); }
@@ -32,6 +35,7 @@
 </head>
 <body>
 <div id="pp-bar">
+  <label id="pp-palette-wrap" hidden>Palette <select id="pp-palette"></select></label>
   <div id="pp-scheme" role="group" aria-label="Color scheme">
     <button type="button" data-scheme="auto" aria-pressed="true">Auto</button>
     <button type="button" data-scheme="light" aria-pressed="false">Light</button>
@@ -42,13 +46,16 @@
 <div id="pp-stage"></div>
 <script type="module">
   // The diagram's styling arrives inside the SVG, exactly as `-o` with the
-  // same --scheme would write it.
+  // same --scheme and --palette would write it.
   const stage = document.getElementById("pp-stage");
   const error = document.getElementById("pp-error");
   const buttons = document.querySelectorAll("#pp-scheme button");
-  let scheme = null; // set from the server's starting scheme on first update
-  let shown = null;  // "revision:scheme" currently on screen
-  let seq = 0;       // only the latest update() may touch the DOM
+  const paletteWrap = document.getElementById("pp-palette-wrap");
+  const paletteSelect = document.getElementById("pp-palette");
+  let scheme = null;  // set from the server's starting scheme on first update
+  let palette = null; // "" means the stylesheet's default; null until first update
+  let shown = null;   // "revision:scheme:palette" currently on screen
+  let seq = 0;        // only the latest update() may touch the DOM
 
   function setScheme(next) {
     scheme = next;
@@ -56,14 +63,29 @@
     for (const b of buttons) b.setAttribute("aria-pressed", String(b.dataset.scheme === next));
   }
 
+  // Rebuilt on every update, since editing the stylesheet can add or remove
+  // palettes. A chosen palette the sheet no longer defines stays listed.
+  function showPalettes(names) {
+    const all = palette && !names.includes(palette) ? [...names, palette] : names;
+    paletteSelect.replaceChildren(
+      new Option("default", ""),
+      ...all.map((name) => new Option(name, name)),
+    );
+    paletteSelect.value = palette;
+    paletteWrap.hidden = all.length === 0;
+  }
+
   async function update() {
     const mine = ++seq;
     const state = await (await fetch("/state.json", { cache: "no-store" })).json();
     if (mine !== seq) return;
     if (scheme === null) setScheme(state.scheme);
-    const key = `${state.revision}:${scheme}`;
+    if (palette === null) palette = state.palette ?? "";
+    showPalettes(state.palettes);
+    const key = `${state.revision}:${scheme}:${palette}`;
     if (key === shown) return;
-    const svg = await (await fetch(`/diagram.svg?scheme=${scheme}&rev=${state.revision}`)).text();
+    const query = new URLSearchParams({ scheme, palette, rev: state.revision });
+    const svg = await (await fetch(`/diagram.svg?${query}`)).text();
     if (mine !== seq) return;
     stage.innerHTML = svg;
     error.textContent = state.error ?? "";
@@ -73,6 +95,7 @@
   }
 
   for (const b of buttons) b.addEventListener("click", () => { setScheme(b.dataset.scheme); update(); });
+  paletteSelect.addEventListener("change", () => { palette = paletteSelect.value; update(); });
   new EventSource("/events").onmessage = update;
 </script>
 </body>

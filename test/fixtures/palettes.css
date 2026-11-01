@@ -1,0 +1,4 @@
+:root, [data-pele-scheme="carbon"] { --pele-bg: #ffffff; }
+[data-pele-scheme="paper"] { --pele-bg: #fbf8f1; }
+[data-pele-scheme='moss'] { --pele-bg: #f8faf5; }
+[data-pele-scheme="paper"] .pele-node { stroke-width: 2px; }

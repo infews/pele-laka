@@ -46,6 +46,7 @@ pele-preview DIAGRAM.mmd [STYLE.css] [options]
       --font FAMILY    font family pele measures labels with (default: sans-serif)
       --font-size N    font size pele measures labels with (default: 16)
       --scheme MODE    auto | light | dark (default: auto)
+      --palette NAME   sets data-pele-scheme="NAME" on the root <svg>
   -h, --help           show usage
 ```
 
@@ -96,7 +97,7 @@ Read both files, `compose`, write `--output`. On `PeleError` print
   - `GET /` — `page.html`
   - `GET /diagram.svg?scheme=X` — current composed SVG for that scheme (re-read and re-composed from disk
     on each change, cached between changes)
-  - `GET /state.json` — `{ revision, error, scheme }` where error is null or a
+  - `GET /state.json` — `{ revision, error, scheme, palette, palettes }` where error is null or a
     preformatted string: `file:line:column: message` (or `file: message`
     when pele reports no position). pele's message already includes the
     source snippet, so the page shows the string as-is.
@@ -132,6 +133,20 @@ X is the chosen scheme and `(not (min-width: 0px))` (never true) otherwise.
   variant (unknown or missing → `auto`).
 - The page has an Auto / Light / Dark toggle; the page's own colors follow it,
   and the diagram area is painted with the SVG's `--pele-bg`.
+
+## Palettes (added 2026-11-01)
+
+Stylesheets offer palettes as `[data-pele-scheme="NAME"]` blocks
+(`pele-plex.css` convention). Since nothing wraps the SVG, `--palette NAME`
+puts `data-pele-scheme="NAME"` on the root `<svg>` (`setPalette`; names must
+match `^[A-Za-z0-9_-]+$`). An unknown name is a warning, not an error.
+
+- `readAndComposeAll` returns `{ svgs, palettes }`; `palettes` is the list of
+  names found in the stylesheet (`palettesIn`).
+- `/diagram.svg?palette=NAME` applies the palette at serve time (unsafe names
+  ignored); `/state.json` adds `palette` (starting) and `palettes`.
+- The page shows a Palette menu ("default" + the names), hidden when the
+  stylesheet defines none, rebuilt on each update.
 
 ## Error handling
 

@@ -1,19 +1,20 @@
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
+import { setPalette, PALETTE_NAME } from "./compose.js";
 
 const PAGE = readFileSync(new URL("./page.html", import.meta.url));
 
-// Serves the current render on 127.0.0.1. `render` returns one SVG per color
-// scheme ({ auto, light, dark }) or throws; `describe` turns the thrown error
-// into the text shown to the user. A failed render keeps the last good SVGs on
-// screen. `scheme` is the one the page starts on.
-export function startServer({ port = 0, render, describe = (e) => e.message, scheme = "auto" }) {
-  const state = { revision: 0, svgs: {}, error: null };
+// Serves the current render on 127.0.0.1. `render` returns
+// { svgs: { auto, light, dark }, palettes } or throws; `describe` turns the
+// thrown error into the text shown to the user. A failed render keeps the last
+// good SVGs on screen. `scheme` and `palette` are what the page starts on.
+export function startServer({ port = 0, render, describe = (e) => e.message, scheme = "auto", palette = null }) {
+  const state = { revision: 0, svgs: {}, palettes: [], error: null };
   const listeners = new Set();
 
   const refresh = () => {
     try {
-      state.svgs = render();
+      ({ svgs: state.svgs, palettes: state.palettes } = render());
       state.error = null;
     } catch (error) {
       state.error = describe(error);
@@ -29,9 +30,11 @@ export function startServer({ port = 0, render, describe = (e) => e.message, sch
       case "/":
         return send(res, "text/html; charset=utf-8", PAGE);
       case "/diagram.svg":
-        return send(res, "image/svg+xml; charset=utf-8", svgFor(url.searchParams.get("scheme")));
+        return send(res, "image/svg+xml; charset=utf-8", svgFor(url.searchParams));
       case "/state.json":
-        return send(res, "application/json", JSON.stringify({ revision: state.revision, error: state.error, scheme }));
+        return send(res, "application/json", JSON.stringify({
+          revision: state.revision, error: state.error, scheme, palette, palettes: state.palettes,
+        }));
       case "/events":
         res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-store" });
         res.write(`data: ${state.revision}\n\n`);
@@ -44,7 +47,14 @@ export function startServer({ port = 0, render, describe = (e) => e.message, sch
     }
   });
 
-  const svgFor = (wanted) => (Object.hasOwn(state.svgs, wanted) ? state.svgs[wanted] : state.svgs.auto) ?? "";
+  // Unknown schemes fall back to auto; palette names that aren't safe tokens
+  // are ignored rather than written into the SVG.
+  const svgFor = (params) => {
+    const wanted = params.get("scheme");
+    const svg = (Object.hasOwn(state.svgs, wanted) ? state.svgs[wanted] : state.svgs.auto) ?? "";
+    const named = params.get("palette");
+    return svg && named && PALETTE_NAME.test(named) ? setPalette(svg, named) : svg;
+  };
 
   const initial = refresh();
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 import { parse, UsageError, HelpRequested } from "../src/cli.js";
-import { readAndCompose, readAndComposeAll, describeError } from "../src/compose.js";
+import { readAndCompose, readAndComposeAll, describeError, palettesIn } from "../src/compose.js";
 import { startServer } from "../src/server.js";
 import { watchFiles } from "../src/watcher.js";
 import { launch } from "../src/browser.js";
@@ -9,10 +9,24 @@ import { launch } from "../src/browser.js";
 const options = parseOrExit(process.argv.slice(2));
 const describe = (error) => describeError(error, options.diagram);
 
+warnAboutUnknownPalette();
+
 if (options.output) {
   exportSvg();
 } else {
   await preview();
+}
+
+// Not an error: the palette may come from a stylesheet the SVG is later shown
+// with, or the name may simply be wrong. Either way, say so once.
+function warnAboutUnknownPalette() {
+  if (!options.palette) return;
+  const css = options.stylesheet ? readFileSync(options.stylesheet, "utf8") : "";
+  const known = palettesIn(css);
+  if (known.includes(options.palette)) return;
+  const where = options.stylesheet ?? "(no stylesheet)";
+  const offer = known.length ? ` (it defines: ${known.join(", ")})` : "";
+  console.error(`warning: palette "${options.palette}" is not defined in ${where}${offer}`);
 }
 
 function parseOrExit(argv) {
@@ -47,6 +61,7 @@ async function preview() {
     server = await startServer({
       port: options.port,
       scheme: options.scheme,
+      palette: options.palette,
       render: () => readAndComposeAll(options),
       describe,
     });

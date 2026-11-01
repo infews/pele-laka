@@ -1,7 +1,7 @@
 import { parseArgs } from "node:util";
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
-import { SCHEMES } from "./compose.js";
+import { SCHEMES, PALETTE_NAME } from "./compose.js";
 
 export class UsageError extends Error {}
 export class HelpRequested extends Error {}
@@ -18,6 +18,8 @@ export const USAGE = `usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
       --scheme MODE    auto | light | dark (default: auto). With -o, light or
                        dark fixes the SVG to that scheme; auto follows the
                        viewer. In preview, the scheme the page starts on.
+      --palette NAME   pick one of the stylesheet's [data-pele-scheme="NAME"]
+                       palettes (default: the stylesheet's own default)
   -h, --help           show this message`;
 
 const OPTIONS = {
@@ -29,6 +31,7 @@ const OPTIONS = {
   font: { type: "string" },
   "font-size": { type: "string" },
   scheme: { type: "string" },
+  palette: { type: "string" },
   help: { type: "boolean", short: "h" },
 };
 
@@ -52,6 +55,7 @@ export function parse(argv) {
     fontFamily: values.font ?? null,
     fontSize: values["font-size"] !== undefined ? wholeNumber(values["font-size"], "--font-size", 1) : null,
     scheme: oneOf(values.scheme ?? "auto", "--scheme", SCHEMES),
+    palette: values.palette === undefined ? null : paletteName(values.palette),
   };
 }
 
@@ -66,6 +70,11 @@ function parseStrict(argv) {
 function readable(path) {
   if (!existsSync(path) || !statSync(path).isFile()) throw new UsageError(`no such file: ${path}`);
   return resolve(path);
+}
+
+function paletteName(text) {
+  if (!PALETTE_NAME.test(text)) throw new UsageError(`--palette must be letters, digits, - or _, got: ${text}`);
+  return text;
 }
 
 function oneOf(text, flag, choices) {

@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
 import { render, PeleError } from "pele";
 import { compose, readAndCompose, describeError, embed } from "../src/compose.js";
 
@@ -116,9 +117,41 @@ test("compose applies the scheme option", () => {
 });
 
 test("readAndComposeAll gives one svg per scheme", () => {
-  const all = readAndComposeAll({ diagram: fixture("flow.mmd"), stylesheet: fixture("theme.css") });
+  const all = readAndComposeAll({ diagram: fixture("flow.mmd"), stylesheet: fixture("theme.css") }).svgs;
   assert.deepEqual(Object.keys(all), SCHEMES);
   assert.match(all.auto, /prefers-color-scheme: dark/);
   assert.match(all.dark, /@media \(min-width: 0px\)/);
   assert.match(all.light, /@media \(not \(min-width: 0px\)\)/);
+});
+
+// --- palettes --------------------------------------------------------------
+
+import { setPalette, palettesIn } from "../src/compose.js";
+
+test("setPalette marks the root svg with data-pele-scheme", () => {
+  const svg = setPalette(render(FLOW).svg, "paper");
+  assert.match(svg, /^<svg data-pele-scheme="paper" xmlns=/);
+});
+
+test("setPalette with no palette changes nothing", () => {
+  assert.equal(setPalette("<svg/>", null), "<svg/>");
+});
+
+test("setPalette refuses names that could break out of the attribute", () => {
+  assert.throws(() => setPalette("<svg/>", 'a" onload="x'), /invalid palette name/);
+});
+
+test("palettesIn lists the data-pele-scheme names a stylesheet defines, once each, in order", () => {
+  assert.deepEqual(palettesIn(readFileSync(fixture("palettes.css"), "utf8")), ["carbon", "paper", "moss"]);
+  assert.deepEqual(palettesIn(".pele { --pele-bg: red; }"), []);
+});
+
+test("compose applies the palette option", () => {
+  assert.match(compose(FLOW, "", { palette: "moss" }), /^<svg data-pele-scheme="moss"/);
+});
+
+test("readAndComposeAll also reports the stylesheet's palettes", () => {
+  const { svgs, palettes } = readAndComposeAll({ diagram: fixture("flow.mmd"), stylesheet: fixture("palettes.css") });
+  assert.deepEqual(Object.keys(svgs), SCHEMES);
+  assert.deepEqual(palettes, ["carbon", "paper", "moss"]);
 });

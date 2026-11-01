@@ -27,6 +27,21 @@ test("--scheme dark -o fixes the exported svg to dark", () => {
   assert.doesNotMatch(svg, /prefers-color-scheme/);
 });
 
+test("--palette marks the exported svg", () => {
+  const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
+  const result = run(fixture("flow.mmd"), fixture("palettes.css"), "--palette", "paper", "-o", out);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(readFileSync(out, "utf8"), /^<svg data-pele-scheme="paper" /);
+  assert.equal(result.stderr, "");
+});
+
+test("a --palette the stylesheet doesn't define still exports, with a warning", () => {
+  const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
+  const result = run(fixture("flow.mmd"), fixture("palettes.css"), "--palette", "harbor", "-o", out);
+  assert.equal(result.status, 0);
+  assert.match(result.stderr, /palette "harbor" is not defined in .*palettes\.css \(it defines: carbon, paper, moss\)/);
+});
+
 test("a broken diagram exits 1 with its location", () => {
   const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
   const result = run(fixture("broken.mmd"), "-o", out);

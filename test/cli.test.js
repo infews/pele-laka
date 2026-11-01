@@ -9,7 +9,7 @@ const css = new URL("./fixtures/theme.css", import.meta.url).pathname;
 test("diagram only: preview defaults", () => {
   assert.deepEqual(parse([flow]), {
     diagram: flow, stylesheet: null, output: null, port: 0,
-    open: true, browserApp: null, fontFamily: null, fontSize: null, scheme: "auto",
+    open: true, browserApp: null, fontFamily: null, fontSize: null, scheme: "auto", palette: null,
   });
 });
 
@@ -72,4 +72,9 @@ test("--scheme picks auto, light or dark", () => {
   assert.equal(parse([flow, "--scheme", "dark"]).scheme, "dark");
   assert.equal(parse([flow, "--scheme", "light"]).scheme, "light");
   assert.throws(() => parse([flow, "--scheme", "blue"]), (e) => e instanceof UsageError && /--scheme must be one of auto, light, dark/.test(e.message));
+});
+
+test("--palette names a data-pele-scheme value", () => {
+  assert.equal(parse([flow, "--palette", "paper"]).palette, "paper");
+  assert.throws(() => parse([flow, "--palette", 'a"b']), (e) => e instanceof UsageError && /--palette/.test(e.message));
 });
