@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { render, PeleError } from "pele";
-import { compose, readAndCompose, describeError } from "../src/compose.js";
+import { compose, readAndCompose, describeError, embed } from "../src/compose.js";
 
 const FLOW = "flowchart LR\n  A[Mermaid text] --> B[SVG]";
 const fixture = (name) => new URL(`./fixtures/${name}`, import.meta.url).pathname;
@@ -63,4 +63,13 @@ test("describeError omits position when pele has none", () => {
 
 test("describeError passes other errors through", () => {
   assert.equal(describeError(new Error("EACCES: nope"), "d.mmd"), "EACCES: nope");
+});
+
+test("embed finds the root tag end even with > inside an attribute value", () => {
+  assert.equal(embed(`<svg a="x>y" b='p>q'><g/></svg>`, "x{}"),
+    `<svg a="x>y" b='p>q'><style><![CDATA[\nx{}\n]]></style><g/></svg>`);
+});
+
+test("embed rejects output with no root svg tag", () => {
+  assert.throws(() => embed("<div></div>", "x{}"), /unexpected pele output: no root <svg> tag/);
 });

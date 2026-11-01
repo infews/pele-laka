@@ -23,10 +23,15 @@ export function describeError(error, file) {
   return `${file}: ${error.message}`;
 }
 
+// The root tag ends at the first `>` outside a quoted attribute value.
+const ROOT_TAG = /^<svg\b(?:[^>"']|"[^"]*"|'[^']*')*>/;
+
 // CDATA keeps `>`, `&` and `<` in CSS from breaking the XML. A literal `]]>`
 // would close the section early, so it is split across two sections.
-function embed(svg, css) {
+export function embed(svg, css) {
+  const root = svg.match(ROOT_TAG);
+  if (!root) throw new Error("unexpected pele output: no root <svg> tag");
   const body = css.replaceAll("]]>", "]]]]><![CDATA[>");
-  const rootTagEnd = svg.indexOf(">") + 1;
+  const rootTagEnd = root[0].length;
   return `${svg.slice(0, rootTagEnd)}<style><![CDATA[\n${body}\n]]></style>${svg.slice(rootTagEnd)}`;
 }
