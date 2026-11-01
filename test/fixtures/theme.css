@@ -1,0 +1,5 @@
+.pele { --pele-surface: #eae7e7; --pele-accent: #205ea6; }
+@media (prefers-color-scheme: dark) {
+  .pele { --pele-surface: #383535; }
+}
+.pele-node > rect { stroke-width: 2px; }
