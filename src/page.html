@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>pele-preview</title>
 <style>
-  :root { color-scheme: light dark; }
   body { margin: 0; font: 13px system-ui, sans-serif; }
   #pp-error { display: none; margin: 0; padding: 12px 16px; white-space: pre-wrap;
               font: 12px ui-monospace, monospace; background: #fde8e8; color: #8a1c1c; }
   #pp-error.shown { display: block; }
   #pp-stage { padding: 24px; }
+  /* The page stays light. The diagram sits on its own --pele-bg (white unless
+     the user's CSS sets it), so a dark theme in the CSS still reads. */
+  #pp-stage > svg { background: var(--_bg); }
   #pp-stage.stale { opacity: .35; filter: grayscale(1); }
 </style>
 </head>

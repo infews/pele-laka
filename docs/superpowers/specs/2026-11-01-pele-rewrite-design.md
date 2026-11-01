@@ -108,8 +108,11 @@ Read both files, `compose`, write `--output`. On `PeleError` print
   Revision increments either way.
 - `page.html` inlines the SVG into the page (so `prefers-color-scheme` follows
   the viewer), listens on `/events`, re-fetches on each revision, and on error
-  shows the message above the last good diagram, greyed out. The page adds no
-  CSS that targets the diagram; the user's CSS travels only inside the SVG.
+  shows the message above the last good diagram, greyed out. The page itself
+  is always light; it paints the SVG's own `--pele-bg` (white by default)
+  behind the diagram so light and dark themes both read. Apart from that
+  background, the page adds no CSS that targets the diagram; the user's CSS
+  travels only inside the SVG.
 - Prints the URL; opens a browser unless `--no-open`. `Ctrl-C` closes the server
   and watchers.
 

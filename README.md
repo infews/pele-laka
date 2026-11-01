@@ -47,8 +47,12 @@ greyed out, with the error above it. Fix the file and it recovers.
 
 Your CSS travels **inside the SVG**, as a `<style>` element, so the exported file
 looks the same everywhere it is opened. The preview page applies no styling of
-its own to the diagram: what you see is what you ship. (The page styles only its
-own chrome, the error banner and the padding around the diagram.)
+its own to the diagram beyond a background: what you see is what you ship. (The
+page otherwise styles only its own chrome, the error banner and the padding
+around the diagram.) The page is always light; it fills the diagram's area with `--pele-bg` (white unless your CSS
+sets it), so a dark theme in your stylesheet still reads in the preview. The
+exported SVG has no background of its own: set `--pele-bg` *and* paint it, e.g.
+`.pele { background: var(--pele-bg, #fff); }`, if the file needs one.
 
 pele's output has no `<style>` of its own. Its defaults are fallbacks written into
 the root `<svg>`'s inline style, such as `--_s:var(--pele-surface,#f3f3f3)`, and
