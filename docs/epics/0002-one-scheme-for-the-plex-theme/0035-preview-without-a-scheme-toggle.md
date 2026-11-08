@@ -40,6 +40,6 @@ gets no test: removed features aren't tested (PM).
 
 ## Implementation Plan
 - [x] Preview serves one SVG: it renders through `readAndCompose`, the same path as export; the server's `render` returns one SVG and drops `?scheme=`; the page loses the toggle but still takes its light or dark from `state.json`; delete `readAndComposeAll` and its tests. (Compose, Preview)
-- [ ] Remove the toggle from the README and say in `--help` that `--scheme` is the scheme the preview shows. (Arguments) Makes `PREVIEW-INV-003` pass.
+- [x] Remove the toggle from the README and say in `--help` that `--scheme` is the scheme the preview shows. (Arguments) Makes `PREVIEW-INV-003` pass.
 
 ## Issues

@@ -16,9 +16,9 @@ export const USAGE = `usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
   -B, --browser APP    open in a specific app (macOS only), e.g. "Google Chrome"
       --font FAMILY    font family pele measures labels with (default: sans-serif)
       --font-size N    font size pele measures labels with (default: 16)
-      --scheme MODE    auto | light | dark (default: auto). With -o, light or
-                       dark fixes the SVG to that scheme; auto follows the
-                       viewer. In preview, the scheme the page starts on.
+      --scheme MODE    auto | light | dark (default: auto). light or dark
+                       fixes the SVG, and the preview, to that scheme; auto
+                       follows the viewer.
   -h, --help           show this message`;
 
 const OPTIONS = {
@@ -33,7 +33,7 @@ const OPTIONS = {
   help: { type: "boolean", short: "h" },
 };
 
-// Throws instead of exiting so bin/pele-preview owns every exit path.
+// Throws instead of exiting so src/main.js owns every exit path.
 export function parse(argv) {
   const { values, positionals } = parseStrict(argv);
   if (values.help) throw new HelpRequested(USAGE);
