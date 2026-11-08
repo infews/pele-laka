@@ -386,8 +386,10 @@ test("PLEX-INV-002 the README lists every edge-label knob with its default", () 
   // @spec PLEX-INV-002
   const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8").split("\n");
   const knob = /(--plex-edge-label-[a-z-]+)\s*:\s*([^;]+);/g;
+  // Defaults are what the theme declares on :root; other rules reassign knobs.
   const code = THEME.replace(/\/\*[^]*?\*\//g, "");
-  const declared = [...code.matchAll(knob)].map(([, name, value]) => [name, value.trim()]);
+  const roots = [...code.matchAll(/:root\s*\{([^}]*)\}/g)].map(([, body]) => body).join("\n");
+  const declared = [...roots.matchAll(knob)].map(([, name, value]) => [name, value.trim()]);
   assert.ok(declared.length >= 8, "the theme declares its edge-label knobs");
   for (const [name, value] of declared) {
     assert.ok(readme.some((line) => line.includes(`\`${name}\``) && line.includes(value)), `README lists ${name} with ${value}`);

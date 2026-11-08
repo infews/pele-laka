@@ -214,6 +214,36 @@ flowchart LR
 - **Edges** can't be hidden: an edge into a hidden node is still drawn. Join
   hidden nodes with Mermaid's invisible link, `~~~`, which draws nothing.
 
+### Edge labels
+
+Labels on flowchart edges are set in small tracked capitals inside a pill, so
+they read as tags rather than as more node text. Each step is relative to the
+box and size pele laid the label out at:
+
+- the text shrinks to 72% (capitals and tracking make it wider), is tracked out,
+  and set at weight 500;
+- the box grows around its own center to fit, into a full pill;
+- a label pele wraps onto two or more lines gets a little more room, and its box
+  reads as a rounded rectangle;
+- sequence-diagram messages are left as pele draws them.
+
+Every step is a knob you can set on `:root` (or any ancestor of the diagram):
+
+| Knob | Default | What it changes |
+|---|---|---|
+| `--plex-edge-label-scale` | `0.72` | text size, as a share of the size pele laid it out at (capitals need about 0.78 or less) |
+| `--plex-edge-label-tracking` | `0.06em` | letter spacing |
+| `--plex-edge-label-weight` | `500` | font weight |
+| `--plex-edge-label-pad-x` | `1.06` | pill width, as a factor of pele's box |
+| `--plex-edge-label-pad-x-wrapped` | `1.14` | pill width for wrapped labels |
+| `--plex-edge-label-pad-y` | `1.0` | pill height, as a factor of pele's box |
+| `--plex-edge-label-pad-y-wrapped` | `1.18` | pill height for wrapped labels |
+| `--plex-edge-label-radius` | unset: a full pill | corner radius, for a soft-cornered tag instead |
+| `--plex-edge-label-stroke-width` | `1px` | outline width |
+| `--plex-edge-label-fg` | unset: `--pele-fg` | text color |
+| `--plex-edge-label-bg` | unset: `--pele-bg` | fill |
+| `--plex-edge-label-border` | unset: `--pele-border` | outline color |
+
 ### Edge cases
 
 - **`solid` without a tone** falls back to the scheme's accent color.

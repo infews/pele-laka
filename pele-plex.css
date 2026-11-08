@@ -18,12 +18,11 @@
  *   Needs light-dark(): Chrome/Edge 123+, Safari 17.5+, Firefox 120+.
  *
  * ── Fonts and measuring ─────────────────────────────────────────────────────────────
- *   Pele measures labels in the font it is given, so:
- *   • mount(): reads --pele-font / --pele-font-mono from CSS (set below) and re-measures
- *     once the web fonts finish loading.
- *   • render(): pass the same family yourself:
- *       render(src, { fontFamily: '"IBM Plex Sans", sans-serif',
- *                     fontFamilyMono: '"IBM Plex Mono", monospace' })
+ *   In a browser, pele's mount() reads --pele-font / --pele-font-mono from CSS (set
+ *   below) and re-measures once the web fonts finish loading.
+ *   Under Node (render(), which pele-preview uses), pele lays labels out from a
+ *   built-in width table at its default size, whatever the family; the edge-label
+ *   rules below scale relative to that size.
  *   Remove the @import below if you self-host Plex (e.g. via @fontsource).
  */
 
