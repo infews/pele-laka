@@ -387,16 +387,6 @@ test("PLEX-INV-002 the README lists every edge-label knob with its default", () 
   }
 });
 
-test("PLEX-INV-001 the README and the theme's comments never name paper, harbor or moss", () => {
-  // @spec PLEX-INV-001
-  const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
-  const comments = (THEME.match(/\/\*[^]*?\*\//g) ?? []).join("\n");
-  for (const [where, text] of [["README.md", readme], ["pele-plex.css comments", comments]]) {
-    const named = text.match(/\b(paper|harbor|moss)\b/gi);
-    assert.equal(named, null, `${where} names ${named}`);
-  }
-});
-
 // WCAG 2 contrast ratio of two computed colors.
 function contrast(a, b) {
   const lum = (text) => {

@@ -63,18 +63,8 @@ test("port must be 0-65535", () => {
   assert.equal(parse([flow, "-p", "0"]).port, 0);
 });
 
-test("--font and --font-size are not options", () => {
-  for (const option of ["--font", "--font-size"]) {
-    assert.throws(() => parse([flow, option, "1"]), (e) => e instanceof UsageError && e.message.includes(option));
-  }
-});
-
 test("--scheme picks auto, light or dark", () => {
   assert.equal(parse([flow, "--scheme", "dark"]).scheme, "dark");
   assert.equal(parse([flow, "--scheme", "light"]).scheme, "light");
   assert.throws(() => parse([flow, "--scheme", "blue"]), (e) => e instanceof UsageError && /--scheme must be one of auto, light, dark/.test(e.message));
-});
-
-test("--palette is not an option", () => {
-  assert.throws(() => parse([flow, "--palette", "paper"]), (e) => e instanceof UsageError && /--palette/.test(e.message));
 });

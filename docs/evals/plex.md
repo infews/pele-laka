@@ -5,7 +5,6 @@ exported with it. Fonts, line widths, radius and weights are the stylesheet's
 business and are not pinned. Tests: `test/evals/plex.test.js`.
 
 ## Invariants
-- `PLEX-INV-001`: The README and the theme's comments shall never name the removed schemes paper, harbor or moss.
 - `PLEX-INV-002`: The README shall list every `--plex-edge-label-*` knob the theme defines, each with its default value.
 - `PLEX-INV-003`: In light and dark, the text of a `solid` node, with any tone or none, shall have at least 4.5:1 contrast against its fill.
 - `PLEX-INV-004`: In light and dark, the text of a node with `tone-N` shall have at least 4.5:1 contrast against its fill.
@@ -58,3 +57,5 @@ business and are not pinned. Tests: `test/evals/plex.test.js`.
 - `PLEX-E2E-018`: A subgraph given the `hidden` class by a `class` line shall not draw its box or title, while the nodes inside it are still drawn.
 
 ## Monitors
+
+<!-- Retired, never reuse: PLEX-INV-001 (checks that removed features stay removed, PM 2026-11-08) -->

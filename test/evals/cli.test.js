@@ -121,26 +121,6 @@ test("CLI-E2E-008 a --scheme other than auto, light or dark exits 2", () => {
   }
 });
 
-test("CLI-E2E-009 --palette is reported as an unknown option and exits 2", () => {
-  // @spec CLI-E2E-009
-  for (const args of [[diagram, "-n", "--palette", "paper"], [diagram, stylesheet, "--palette", "x", "-o", "x.svg"]]) {
-    const result = run(...args);
-    assert.equal(result.status, 2, args.join(" "));
-    assert.match(result.stderr, /--palette/);
-    assert.match(result.stderr, /\n\nusage: pele-preview /);
-  }
-});
-
-test("CLI-E2E-010 --font and --font-size are reported as unknown options and exit 2", () => {
-  // @spec CLI-E2E-010
-  for (const [option, value] of [["--font", "Georgia"], ["--font-size", "18"]]) {
-    const result = run(diagram, "-n", option, value);
-    assert.equal(result.status, 2, option);
-    assert.ok(result.stderr.includes(option), result.stderr);
-    assert.match(result.stderr, /\n\nusage: pele-preview /);
-  }
-});
-
 // --- Invariants -------------------------------------------------------------
 
 // A command line with at least one thing wrong with it, and optionally -o, so
@@ -177,18 +157,6 @@ test("CLI-INV-002 invalid arguments print nothing to stdout", () => {
   fc.assert(fc.property(badCommandLine, ({ args }) => {
     assert.equal(run(...args).stdout, "");
   }), { numRuns: 30 });
-});
-
-test("CLI-INV-004 the README never mentions --palette or data-pele-scheme", () => {
-  // @spec CLI-INV-004
-  const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
-  assert.equal(readme.match(/--palette|data-pele-scheme/g), null);
-});
-
-test("CLI-INV-005 the README never mentions --font or --font-size", () => {
-  // @spec CLI-INV-005
-  const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
-  assert.equal(readme.match(/--font\b(?!-family|-mono)|--font-size/g), null);
 });
 
 test("CLI-INV-003 the usage text is the README's", () => {

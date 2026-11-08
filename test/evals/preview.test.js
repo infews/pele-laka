@@ -447,12 +447,6 @@ test("PREVIEW-INV-002 previewing never writes or changes a file", async () => {
   }), { numRuns: 4 });
 });
 
-test("PREVIEW-INV-003 the README never mentions a scheme toggle in the preview", () => {
-  // @spec PREVIEW-INV-003
-  const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
-  assert.equal(readme.match(/toggle|Auto \/ Light \/ Dark/gi), null);
-});
-
 // --- Monitors ---------------------------------------------------------------
 
 test("PREVIEW-MON-001 a save shows on the page within 1 second", async () => {

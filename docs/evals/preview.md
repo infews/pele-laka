@@ -7,7 +7,6 @@ Tests: `test/evals/preview.test.js`.
 ## Invariants
 - `PREVIEW-INV-001`: The system shall accept connections only on the loopback interface.
 - `PREVIEW-INV-002`: While previewing, the system shall never write or change any file.
-- `PREVIEW-INV-003`: The README shall never mention a scheme toggle in the preview.
 
 ## Contracts
 - `PREVIEW-CON-001`: Unless `-n` is given, the system shall open the URL with `open URL` on macOS and `xdg-open URL` elsewhere.
@@ -33,3 +32,5 @@ Tests: `test/evals/preview.test.js`.
 
 ## Monitors
 - `PREVIEW-MON-001`: When a file is saved, the system shall show the new render on the page within 1 second.
+
+<!-- Retired, never reuse: PREVIEW-INV-003 (checks that removed features stay removed, PM 2026-11-08) -->

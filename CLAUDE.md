@@ -11,6 +11,10 @@ the CLI rather than the modules behind it (the `PLEX` tests export with
 `pele-plex.css` and read the result in Chromium). Every other test is internal:
 a redesign may rewrite or delete it.
 
+Don't write evals or tests that check a removed feature stays removed (an
+option rejected, the README not mentioning it). Once a removal is accepted,
+nothing needs to guard it (PM decision, 2026-11-08).
+
 ## Commands
 
 Node 20 or newer. Run `npm install` and `npx playwright install chromium` once:
