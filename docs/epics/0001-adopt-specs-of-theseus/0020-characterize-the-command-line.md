@@ -34,18 +34,11 @@ Feature: Command-line arguments shared by export and preview
     Examples:
       | flag        | value |
       | --scheme    | blue  |
-      | --palette   | a"b   |
-      | --font-size | 0     |
-      | --font-size | abc   |
-
-  Scenario: A palette the stylesheet doesn't define
-    Given a stylesheet that defines palettes carbon, paper and moss
-    When I pass --palette harbor
-    Then it warns 'palette "harbor" is not defined in STYLE (it defines: carbon, paper, moss)' on stderr
-    And it carries on as normal
 ```
 
 ## EARS Specifications
+
+Not to be pinned: `--palette`, `--font` and `--font-size`, which epic 0002 removes.
 
 ## Implementation Plan
 

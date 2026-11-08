@@ -25,7 +25,7 @@ Feature: Live preview in a browser
       | -B "Google Chrome" | it opens the page in Google Chrome             |
 
   Scenario: What the page shows
-    Then the diagram on the page is the SVG that -o would write with the same --scheme and --palette
+    Then the diagram on the page is the SVG that -o would write with the same --scheme
     And the diagram sits on its own --pele-bg (white unless the stylesheet sets it)
 
   Scenario: Live reload
@@ -44,12 +44,6 @@ Feature: Live preview in a browser
     Then the page has an Auto / Light / Dark toggle that starts on --scheme
     And each position shows the diagram exactly as -o with that --scheme would write it
 
-  Scenario: The palette menu
-    Given a stylesheet with data-pele-scheme palettes
-    Then the page has a Palette menu listing "default" and each palette, starting on --palette
-    And the menu updates when I edit the stylesheet
-    And it is hidden when the stylesheet defines no palettes
-
   Scenario: Stopping
     When I press Ctrl-C
     Then it exits 0
@@ -61,6 +55,8 @@ Feature: Live preview in a browser
 ```
 
 ## EARS Specifications
+
+Not to be pinned: the Palette menu and `--palette`, which epic 0002 removes.
 
 ## Implementation Plan
 

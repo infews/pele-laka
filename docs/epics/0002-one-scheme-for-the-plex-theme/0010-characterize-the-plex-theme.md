@@ -41,6 +41,23 @@ Feature: The IBM Plex theme (carbon)
     Then it is filled with an opaque 9% tint of color N over the background
     And outlined and titled in full color N
 
+  Scenario: Edge labels on graph diagrams
+    Given a flowchart edge with a label
+    Then the label is in capitals, at 72% of the size pele laid it out at, tracked out by 0.06em
+    And its box is a pill grown around its center to fit the capitals
+
+  Scenario: Wrapped edge labels
+    Given an edge label pele wraps onto two or more lines
+    Then its box grows a little more on every side and reads as a rounded rectangle
+
+  Scenario: Sequence messages
+    Given a sequence diagram
+    Then its message labels keep pele's own case, size and spacing
+
+  Scenario: Adjustable edge labels
+    When the stylesheet sets any --plex-edge-label-* knob (scale, tracking, weight, padding, radius, stroke width)
+    Then the edge labels follow it
+
   Scenario: Adjustable tints
     When the stylesheet sets --plex-tone-node-mix or --plex-tone-cluster-mix
     Then node or subgraph tints use that strength

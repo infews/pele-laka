@@ -16,15 +16,9 @@ Feature: One color scheme
     Given pele-plex.css as the stylesheet
     Then the preview page shows no Palette menu
 
-  Scenario: Asking for a palette that's gone
-    When I run pele-preview DIAGRAM pele-plex.css --palette paper -o out.svg
-    Then it warns on stderr that the stylesheet defines no palette "paper"
-    And out.svg still renders in carbon, and it exits 0
-
   Scenario: The docs match
     Then the README's Plex section and the theme's header comment
-      describe a single scheme and never mention paper, harbor, moss or --palette
-    And the README's Palettes section no longer uses pele-plex.css as its example
+      describe a single scheme and never mention paper, harbor or moss
 ```
 
 ## EARS Specifications
