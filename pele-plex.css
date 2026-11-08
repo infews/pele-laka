@@ -3,14 +3,9 @@
  * pele-plex.css — an IBM Plex theme for Pele (https://github.com/obsidianmd/pele)
  *
  * Fonts      IBM Plex Sans for labels, IBM Plex Mono for monospace parts.
- * Schemes    carbon (default), paper, harbor, moss — each with a light and a dark palette.
+ * Colors     IBM Carbon's neutrals and categorical palette, with a light and a dark side.
  * Edge text  ALL CAPS, slightly smaller, tracked out, in a rounded pill.
  * Utility    .hidden { display: none }
- *
- * ── Choosing a scheme ────────────────────────────────────────────────────────────────
- *   <div data-pele-scheme="paper"> …diagram… </div>
- *   Put the attribute on the diagram's container or any ancestor (e.g. <html>).
- *   With no attribute, diagrams use "carbon".
  *
  * ── Light / dark ─────────────────────────────────────────────────────────────────────
  *   By default a diagram follows the OS setting, via @media (prefers-color-scheme: dark).
@@ -44,7 +39,7 @@
 
 /* ─── Fonts, weights, knobs ──────────────────────────────────────────────────────── */
 /* Declared on :root so a container sees them before its first render (mount() reads
-   them from there), and so a data-pele-scheme on an ancestor can override them. */
+   them from there), and so your own CSS can override them on any ancestor. */
 
 :root {
   --pele-font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -164,8 +159,8 @@
      class MySubgraph tone-3       a subgraph, by its id (subgraphs can't take :::)
      D[Alert]:::tone-4             a full-strength fill: add "solid" on its own line,
      class D solid                   as Mermaid takes one class per ::: or class line
-   No classDef is needed; Pele copies the class names onto the SVG. Tones follow the
-   active scheme and light/dark mode because they read --pele-series-1…8. */
+   No classDef is needed; Pele copies the class names onto the SVG. Tones follow
+   light/dark mode because they read --pele-series-1…8. */
 
 .pele .tone-1 { --plex-tone: var(--pele-series-1); }
 .pele .tone-2 { --plex-tone: var(--pele-series-2); }
@@ -221,12 +216,11 @@
 }
 
 
-/* ─── Schemes ───────────────────────────────────────────────────────────────────── */
-/* Each color is light-dark(<light>, <dark>). */
+/* ─── Colors ─────────────────────────────────────────────────────────────────────── */
+/* Each color is light-dark(<light>, <dark>). Neutral grays and IBM blue; the series
+   is IBM Carbon's categorical palette. */
 
-/* Carbon — neutral grays and IBM blue; series is IBM's categorical palette. */
-:root,
-[data-pele-scheme="carbon"] {
+:root {
   --pele-bg:          light-dark(#ffffff, #161616);
   --pele-fg:          light-dark(#161616, #f4f4f4);
   --pele-fg-on-light: #161616;
@@ -247,76 +241,4 @@
   --pele-series-6:    light-dark(#570408, #fff1f1);
   --pele-series-7:    light-dark(#198038, #6fdc8c);
   --pele-series-8:    light-dark(#002d9c, #4589ff);
-}
-
-/* Paper — warm off-white and espresso, rust accent. */
-[data-pele-scheme="paper"] {
-  --pele-bg:          light-dark(#fbf8f1, #1c1915);
-  --pele-fg:          light-dark(#2b2620, #ece5d8);
-  --pele-fg-on-light: #2b2620;
-  --pele-fg-on-dark:  #fbf8f1;
-  --pele-muted:       light-dark(#7a7064, #a39889);
-  --pele-line:        light-dark(#5a5045, #b9ae9d);
-  --pele-surface:     light-dark(#f2ecdf, #27231d);
-  --pele-surface-alt: light-dark(#e7dfcf, #332e26);
-  --pele-border:      light-dark(#c4b69e, #5a5045);
-  --pele-accent:      light-dark(#b2541a, #e8935a);
-  --pele-critical:    light-dark(#b3261e, #f07167);
-  --pele-error:       light-dark(#b3261e, #f07167);
-  --pele-series-1:    light-dark(#b2541a, #e8935a);
-  --pele-series-2:    light-dark(#8a6d1c, #d9b450);
-  --pele-series-3:    light-dark(#5d7a2e, #a3c46a);
-  --pele-series-4:    light-dark(#2f6f73, #6cc1bc);
-  --pele-series-5:    light-dark(#3f5b8c, #8aa8de);
-  --pele-series-6:    light-dark(#6b4a8a, #b996d6);
-  --pele-series-7:    light-dark(#9c3d5b, #e584a2);
-  --pele-series-8:    light-dark(#7a5c45, #c9a786);
-}
-
-/* Harbor — cool blue-grays, teal accent. */
-[data-pele-scheme="harbor"] {
-  --pele-bg:          light-dark(#f7f9fb, #0d1620);
-  --pele-fg:          light-dark(#0f1c2a, #dde6ef);
-  --pele-fg-on-light: #0f1c2a;
-  --pele-fg-on-dark:  #f7f9fb;
-  --pele-muted:       light-dark(#5b6b7c, #8a9bab);
-  --pele-line:        light-dark(#3d5064, #9fb2c4);
-  --pele-surface:     light-dark(#e9eff5, #152230);
-  --pele-surface-alt: light-dark(#dae4ee, #1e2e3e);
-  --pele-border:      light-dark(#98abbf, #3d5267);
-  --pele-accent:      light-dark(#0b7285, #3bc9db);
-  --pele-critical:    light-dark(#c92a2a, #ff6b6b);
-  --pele-error:       light-dark(#c92a2a, #ff6b6b);
-  --pele-series-1:    light-dark(#0b7285, #3bc9db);
-  --pele-series-2:    light-dark(#1864ab, #74c0fc);
-  --pele-series-3:    light-dark(#5f3dc4, #b197fc);
-  --pele-series-4:    light-dark(#a61e4d, #f783ac);
-  --pele-series-5:    light-dark(#c2410c, #ff922b);
-  --pele-series-6:    light-dark(#8a6400, #ffd43b);
-  --pele-series-7:    light-dark(#2b8a3e, #8ce99a);
-  --pele-series-8:    light-dark(#495057, #ced4da);
-}
-
-/* Moss — soft greens and bark, leaf accent. */
-[data-pele-scheme="moss"] {
-  --pele-bg:          light-dark(#f8faf5, #12170f);
-  --pele-fg:          light-dark(#1b2418, #dfe6d8);
-  --pele-fg-on-light: #1b2418;
-  --pele-fg-on-dark:  #f8faf5;
-  --pele-muted:       light-dark(#637060, #8e9a86);
-  --pele-line:        light-dark(#46533f, #aab8a0);
-  --pele-surface:     light-dark(#ecf1e6, #1a2116);
-  --pele-surface-alt: light-dark(#dee6d5, #242d1f);
-  --pele-border:      light-dark(#a3b298, #46533f);
-  --pele-accent:      light-dark(#3f7a1c, #9ccc65);
-  --pele-critical:    light-dark(#b3261e, #f07167);
-  --pele-error:       light-dark(#b3261e, #f07167);
-  --pele-series-1:    light-dark(#3f7a1c, #9ccc65);
-  --pele-series-2:    light-dark(#2f6f5e, #63c6a8);
-  --pele-series-3:    light-dark(#8a6d1c, #d9b450);
-  --pele-series-4:    light-dark(#a8541e, #e8945a);
-  --pele-series-5:    light-dark(#7a3b5c, #d68aaf);
-  --pele-series-6:    light-dark(#3f5b8c, #8fb0e8);
-  --pele-series-7:    light-dark(#5e4a2e, #c4a27a);
-  --pele-series-8:    light-dark(#5f6b2a, #c9cf8a);
 }
