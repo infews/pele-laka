@@ -1,20 +1,19 @@
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
-import { setPalette, PALETTE_NAME } from "./compose.js";
 
 const PAGE = readFileSync(new URL("./page.html", import.meta.url));
 
 // Serves the current render on 127.0.0.1. `render` returns
-// { svgs: { auto, light, dark }, palettes } or throws; `describe` turns the
+// { auto, light, dark }, one SVG per scheme, or throws; `describe` turns the
 // thrown error into the text shown to the user. A failed render keeps the last
-// good SVGs on screen. `scheme` and `palette` are what the page starts on.
-export function startServer({ port = 0, render, describe = (e) => e.message, scheme = "auto", palette = null }) {
-  const state = { revision: 0, svgs: {}, palettes: [], error: null };
+// good SVGs on screen. `scheme` is what the page starts on.
+export function startServer({ port = 0, render, describe = (e) => e.message, scheme = "auto" }) {
+  const state = { revision: 0, svgs: {}, error: null };
   const listeners = new Set();
 
   const refresh = () => {
     try {
-      ({ svgs: state.svgs, palettes: state.palettes } = render());
+      state.svgs = render();
       state.error = null;
     } catch (error) {
       state.error = describe(error);
@@ -33,7 +32,7 @@ export function startServer({ port = 0, render, describe = (e) => e.message, sch
         return send(res, "image/svg+xml; charset=utf-8", svgFor(url.searchParams));
       case "/state.json":
         return send(res, "application/json", JSON.stringify({
-          revision: state.revision, error: state.error, scheme, palette, palettes: state.palettes,
+          revision: state.revision, error: state.error, scheme,
         }));
       case "/events":
         res.writeHead(200, { "content-type": "text/event-stream", "cache-control": "no-store" });
@@ -47,13 +46,10 @@ export function startServer({ port = 0, render, describe = (e) => e.message, sch
     }
   });
 
-  // Unknown schemes fall back to auto; palette names that aren't safe tokens
-  // are ignored rather than written into the SVG.
+  // Unknown schemes fall back to auto.
   const svgFor = (params) => {
     const wanted = params.get("scheme");
-    const svg = (Object.hasOwn(state.svgs, wanted) ? state.svgs[wanted] : state.svgs.auto) ?? "";
-    const named = params.get("palette");
-    return svg && named && PALETTE_NAME.test(named) ? setPalette(svg, named) : svg;
+    return (Object.hasOwn(state.svgs, wanted) ? state.svgs[wanted] : state.svgs.auto) ?? "";
   };
 
   const initial = refresh();
