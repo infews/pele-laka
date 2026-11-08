@@ -8,14 +8,20 @@ with `@subsystem` comments.
 
 Not every product area has evals yet (see
 `docs/epics/0001-adopt-specs-of-theseus.md`; the Plex theme is adopted in the
-first story of `docs/epics/0002-one-scheme-for-the-plex-theme.md`). Until all of them do, **the existing
-tests stand in for the missing evals**: they must keep passing, and no redesign
+first story of `docs/epics/0002-one-scheme-for-the-plex-theme.md`). Until all
+of them do, **the existing tests stand in for the missing evals**: they must keep passing, and no redesign
 may delete them.
+
+## Tests
+
+Eval tests live in `test/evals/<area>.test.js`, tagged `@spec <ID>`, and drive
+the CLI rather than the modules behind it. Every other test is internal: a
+redesign may rewrite or delete it (but see "Adoption in progress").
 
 ## Commands
 
-Node 20 or newer. Run `npm install` once; browser tests also need
-`npx playwright install chromium`.
+Node 20 or newer. Run `npm install` and `npx playwright install chromium` once:
+some eval tests in `npm test` drive Chromium too.
 
 | Step | Command |
 |---|---|

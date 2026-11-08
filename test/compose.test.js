@@ -1,3 +1,5 @@
+// Internal tests of the Compose subsystem. A redesign may rewrite or delete
+// them; the EXPORT evals (test/evals/export.test.js) are what must keep passing.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";

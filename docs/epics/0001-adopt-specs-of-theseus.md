@@ -46,6 +46,6 @@ None.
 ## Open Questions
 
 ## Resulting Stories
-- [Characterize export](0001-adopt-specs-of-theseus/0010-characterize-export.md)
+- ~~[Characterize export](0001-adopt-specs-of-theseus/0010-characterize-export.md)~~
 - [Characterize the command line](0001-adopt-specs-of-theseus/0020-characterize-the-command-line.md)
 - [Characterize preview](0001-adopt-specs-of-theseus/0030-characterize-preview.md)

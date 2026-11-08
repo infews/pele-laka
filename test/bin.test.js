@@ -1,3 +1,5 @@
+// Export behavior is pinned by test/evals/export.test.js; these cover the
+// command line and preview until those areas are adopted.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync, spawn } from "node:child_process";
@@ -8,24 +10,6 @@ import { join } from "node:path";
 const bin = new URL("../bin/pele-preview", import.meta.url).pathname;
 const fixture = (name) => new URL(`./fixtures/${name}`, import.meta.url).pathname;
 const run = (...args) => spawnSync(process.execPath, [bin, ...args], { encoding: "utf8" });
-
-test("-o writes an svg with the stylesheet embedded", () => {
-  const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
-  const result = run(fixture("flow.mmd"), fixture("theme.css"), "-o", out);
-  assert.equal(result.status, 0, result.stderr);
-  const svg = readFileSync(out, "utf8");
-  assert.match(svg, /^<svg [^>]*><style><!\[CDATA\[/);
-  assert.match(svg, /--pele-surface: #eae7e7/);
-});
-
-test("--scheme dark -o fixes the exported svg to dark", () => {
-  const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
-  const result = run(fixture("flow.mmd"), fixture("theme.css"), "--scheme", "dark", "-o", out);
-  assert.equal(result.status, 0, result.stderr);
-  const svg = readFileSync(out, "utf8");
-  assert.match(svg, /@media \(min-width: 0px\)/);
-  assert.doesNotMatch(svg, /prefers-color-scheme/);
-});
 
 test("--palette marks the exported svg", () => {
   const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
@@ -40,13 +24,6 @@ test("a --palette the stylesheet doesn't define still exports, with a warning", 
   const result = run(fixture("flow.mmd"), fixture("palettes.css"), "--palette", "harbor", "-o", out);
   assert.equal(result.status, 0);
   assert.match(result.stderr, /palette "harbor" is not defined in .*palettes\.css \(it defines: carbon, paper, moss\)/);
-});
-
-test("a broken diagram exits 1 with its location", () => {
-  const out = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "out.svg");
-  const result = run(fixture("broken.mmd"), "-o", out);
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /broken\.mmd:2:9: Parse error/);
 });
 
 test("usage errors exit 2", () => {

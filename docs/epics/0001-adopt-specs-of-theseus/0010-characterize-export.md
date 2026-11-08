@@ -36,15 +36,6 @@ Feature: Export a diagram as a self-contained SVG
       | dark   | dark rules always apply, light rules never do, no such query remains     |
       | light  | light rules always apply, dark rules never do, no such query remains     |
 
-  Scenario: Choosing a palette
-    When I export with --palette paper
-    Then the root <svg> carries data-pele-scheme="paper"
-
-  Scenario: Measuring fonts
-    When I export with --font Georgia --font-size 24
-    Then pele lays out the labels with that family and size
-    And the SVG falls back to that family when the CSS sets no --pele-font
-
   Scenario: A broken diagram
     Given a diagram with a syntax error on line 2, column 9
     When I export
@@ -57,7 +48,17 @@ Feature: Export a diagram as a self-contained SVG
 ```
 
 ## EARS Specifications
+- `EXPORT-CON-001`, `EXPORT-CON-002`, `EXPORT-CON-003`
+- `EXPORT-E2E-001` … `EXPORT-E2E-010`
+- `EXPORT-INV-001` … `EXPORT-INV-005`
+
+Not pinned, by the PM's decision: `--palette`, `--font` and `--font-size`. They
+are being removed (epic 0002), so the stylesheet alone decides the colors and
+the font.
 
 ## Implementation Plan
 
 ## Issues
+
+- [x] **Updating Evals** — A stylesheet containing a control character XML forbids (e.g. `0x01`) exports an SVG that isn't well-formed XML, so "well-formed whatever the stylesheet contains" is false today. Scope the invariant to characters XML allows, or reject / strip such characters (a fix story)? I'd scope it: real CSS doesn't contain them.
+  - Answer: Scope `EXPORT-INV-002` to characters XML allows; no fix story (2026-11-08).
