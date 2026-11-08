@@ -6,6 +6,7 @@ business and are not pinned. Tests: `test/evals/plex.test.js`.
 
 ## Invariants
 - `PLEX-INV-001`: The README and the theme's comments shall never name the removed schemes paper, harbor or moss.
+- `PLEX-INV-002`: The README shall list every `--plex-edge-label-*` knob the theme defines, each with its default value.
 
 ## Contracts
 - `PLEX-CON-001`: The theme shall set pele's color variables to the carbon values in the table below, for light and for dark.

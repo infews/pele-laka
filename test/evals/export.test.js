@@ -189,6 +189,18 @@ test("EXPORT-E2E-010 an output path that can't be written prints the error and e
   assert.match(result.stderr, new RegExp(`ENOENT.*${out}`));
 });
 
+test("EXPORT-E2E-011 the stylesheet's --pele-font sets the text's family", async () => {
+  // @spec EXPORT-E2E-011
+  const page = await browser.newPage();
+  try {
+    await page.setContent(exportWith(".pele { --pele-font: Georgia, serif; }"));
+    const family = await page.evaluate(() => getComputedStyle(document.querySelector("svg text")).fontFamily);
+    assert.equal(family, "Georgia, serif");
+  } finally {
+    await page.close();
+  }
+});
+
 // --- Invariants (properties, run through the CLI) ---------------------------
 
 test("EXPORT-INV-001 export never changes the files it reads", () => {

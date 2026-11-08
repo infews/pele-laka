@@ -34,6 +34,14 @@ Feature: No font options
 ```
 
 ## EARS Specifications
+- `CLI-E2E-010` (new)
+- `CLI-INV-005` (new)
+- `EXPORT-E2E-011` (new)
+- `PLEX-INV-002` (new)
+
+Already pinned: pele lays out at its default size and family, since
+`EXPORT-E2E-003` and `EXPORT-INV-006` compare the output with pele's default
+rendering.
 
 ## Implementation Plan
 

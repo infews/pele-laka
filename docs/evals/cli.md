@@ -9,6 +9,7 @@ mode are pinned in that mode's area. Tests: `test/evals/cli.test.js`.
 - `CLI-INV-002`: If the arguments are invalid, then the system shall print nothing to stdout.
 - `CLI-INV-003`: The usage text the system prints shall be the one shown in the README.
 - `CLI-INV-004`: The README shall never mention `--palette` or `data-pele-scheme`.
+- `CLI-INV-005`: The README shall never mention `--font` or `--font-size`.
 
 ## Contracts
 
@@ -22,5 +23,6 @@ mode are pinned in that mode's area. Tests: `test/evals/cli.test.js`.
 - `CLI-E2E-007`: The system shall treat `DIAGRAM STYLE`, `DIAGRAM -c STYLE` and `DIAGRAM --css STYLE` the same.
 - `CLI-E2E-008`: If `--scheme` is not `auto`, `light` or `dark`, then the system shall print `--scheme must be one of auto, light, dark, got: <value>` to stderr and exit 2.
 - `CLI-E2E-009`: If the user passes `--palette`, then the system shall report it as an unknown option, then the usage text, to stderr and exit 2.
+- `CLI-E2E-010`: If the user passes `--font` or `--font-size`, then the system shall report it as an unknown option, then the usage text, to stderr and exit 2.
 
 ## Monitors

@@ -382,6 +382,22 @@ test("PLEX-E2E-018 a hidden subgraph loses its box and title but not its nodes",
 
 // --- Invariants -------------------------------------------------------------
 
+test("PLEX-INV-002 the README lists every edge-label knob with its default", () => {
+  // @spec PLEX-INV-002
+  const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8").split("\n");
+  const knob = /(--plex-edge-label-[a-z-]+)\s*:\s*([^;]+);/g;
+  const code = THEME.replace(/\/\*[^]*?\*\//g, "");
+  const declared = [...code.matchAll(knob)].map(([, name, value]) => [name, value.trim()]);
+  assert.ok(declared.length >= 8, "the theme declares its edge-label knobs");
+  for (const [name, value] of declared) {
+    assert.ok(readme.some((line) => line.includes(`\`${name}\``) && line.includes(value)), `README lists ${name} with ${value}`);
+  }
+  // Knobs the theme documents but leaves unset, such as the radius.
+  for (const [, name] of (THEME.match(/\/\*[^]*?\*\//g) ?? []).join("\n").matchAll(knob)) {
+    assert.ok(readme.some((line) => line.includes(`\`${name}\``)), `README lists ${name}`);
+  }
+});
+
 test("PLEX-INV-001 the README and the theme's comments never name paper, harbor or moss", () => {
   // @spec PLEX-INV-001
   const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
