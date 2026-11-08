@@ -37,5 +37,7 @@ The Palette menu has no eval of its own: without `--palette`, `PREVIEW-E2E-004`
 (the page shows what `-o` writes) covers it.
 
 ## Implementation Plan
+- [ ] Drop `--palette` and the unknown-palette warning; remove the option from the README's usage block and delete the Palettes section. (Arguments, Export) Makes `CLI-E2E-009` and `CLI-INV-004` pass.
+- [ ] Delete `setPalette`, `palettesIn`, `PALETTE_NAME` and the palettes `readAndComposeAll` reports; drop the server's `?palette=` and palette state, and the page's Palette menu. Delete their internal tests, `test/bin.test.js` and `test/fixtures/palettes.css`. (Compose, Preview)
 
 ## Issues
