@@ -187,7 +187,7 @@ flowchart LR
 | Class | Fill | Outline | Text |
 |---|---|---|---|
 | `tone-N` on a node | 18% tint of the color | Full color | Normal foreground |
-| `tone-N` + `solid` | Full color | Full color | Background color |
+| `tone-N` + `solid` | Full color | Full color | Near-black or white, whichever reads better on that tone |
 | `tone-N` on a subgraph | 9% tint, opaque | Full color | Title in full color |
 
 The tint strengths are adjustable with `--plex-tone-node-mix` and `--plex-tone-cluster-mix`.
