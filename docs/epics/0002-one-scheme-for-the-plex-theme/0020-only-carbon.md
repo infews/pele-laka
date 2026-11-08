@@ -29,5 +29,7 @@ the theme's look is the stylesheet's responsibility, already pinned by
 `PLEX-CON-001`.
 
 ## Implementation Plan
+- [ ] Remove paper, harbor and moss from the theme: carbon's block selects `:root` alone, its section is renamed "Colors", and the header and knob comments describe one scheme. (PlexTheme)
+- [ ] Rewrite the README's Plex section without palette choice, and give the Palettes section a neutral example. (docs only) Makes `PLEX-INV-001` pass.
 
 ## Issues
