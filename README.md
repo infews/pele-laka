@@ -30,7 +30,7 @@ usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
   -c, --css FILE       stylesheet (same as the second positional argument)
   -p, --port N         port to serve on (default: ephemeral)
   -n, --no-open        don't open a browser, just print the URL
-  -B, --browser APP    open in a specific app, e.g. "Google Chrome"
+  -B, --browser APP    open in a specific app (macOS only), e.g. "Google Chrome"
       --font FAMILY    font family pele measures labels with (default: sans-serif)
       --font-size N    font size pele measures labels with (default: 16)
       --scheme MODE    auto | light | dark (default: auto). With -o, light or

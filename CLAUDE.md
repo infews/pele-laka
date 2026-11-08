@@ -6,11 +6,10 @@ with `@subsystem` comments.
 
 ## Adoption in progress
 
-Not every product area has evals yet (see
-`docs/epics/0001-adopt-specs-of-theseus.md`; the Plex theme is adopted in the
-first story of `docs/epics/0002-one-scheme-for-the-plex-theme.md`). Until all
-of them do, **the existing tests stand in for the missing evals**: they must keep passing, and no redesign
-may delete them.
+`CLI`, `EXPORT` and `PREVIEW` have evals. `PLEX` (`pele-plex.css`) doesn't yet:
+it is adopted in the first story of
+`docs/epics/0002-one-scheme-for-the-plex-theme.md`. Until then, no redesign may
+change the theme's behavior except by a story that says so.
 
 ## Tests
 

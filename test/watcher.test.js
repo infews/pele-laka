@@ -1,3 +1,5 @@
+// Internal tests of part of the Preview subsystem. A redesign may rewrite or
+// delete them; the PREVIEW evals (test/evals/preview.test.js) must keep passing.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, renameSync, unlinkSync, existsSync } from "node:fs";

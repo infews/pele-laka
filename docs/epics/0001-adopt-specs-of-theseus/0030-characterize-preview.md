@@ -62,6 +62,10 @@ Feature: Live preview in a browser
 ```
 
 ## EARS Specifications
+- `PREVIEW-CON-001`, `PREVIEW-CON-002`, `PREVIEW-CON-003`
+- `PREVIEW-E2E-001` … `PREVIEW-E2E-015`
+- `PREVIEW-INV-001`, `PREVIEW-INV-002`
+- `PREVIEW-MON-001`
 
 Not to be pinned: the Palette menu, `--palette` and the Auto / Light / Dark
 toggle, which epic 0002 removes.
@@ -69,6 +73,9 @@ toggle, which epic 0002 removes.
 ## Implementation Plan
 
 ## Issues
+
+- [x] **Updating Evals** — `-B APP` runs `open -a APP URL` on every platform, but `open -a` exists only on macOS, so `-B` fails silently on Linux. Document `-B` as macOS-only, or make it run `APP URL` elsewhere (a fix story)? I'd document it.
+  - Answer: macOS-only, documented; `--help` and the README now say so (2026-11-08).
 
 - [x] **Adoption survey** — The README contradicts itself about the page's own colors. The Styling section says "The page is always light"; the Light and dark section says "The page's own colors follow the toggle". The code follows the toggle (commit 33b5645 came after 61d2914, which made it always light). Which is intended? I'd keep following the toggle and fix the Styling paragraph.
   - Answer: Keep following the toggle; README Styling paragraph fixed (2026-11-08).
