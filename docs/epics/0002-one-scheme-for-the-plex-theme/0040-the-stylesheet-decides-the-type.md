@@ -44,7 +44,7 @@ Already pinned: pele lays out at its default size and family, since
 rendering.
 
 ## Implementation Plan
-- [ ] Remove `--font` and `--font-size`: the options, their fields and the font plumbing into pele; their README usage lines; and the "Match the font you measure with" gotcha, replaced by how sizing works. (Arguments, Compose) Makes `CLI-E2E-010` and `CLI-INV-005` pass.
+- [x] Remove `--font` and `--font-size`: the options, their fields and the font plumbing into pele; their README usage lines; and the "Match the font you measure with" gotcha, replaced by how sizing works. (Arguments, Compose) Makes `CLI-E2E-010` and `CLI-INV-005` pass.
 - [ ] Document the Plex edge labels in the README, with every `--plex-edge-label-*` knob and its default, and correct the theme's header comment on measuring. (PlexTheme comments) Makes `PLEX-INV-002` pass.
 
 ## Issues

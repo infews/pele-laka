@@ -14,8 +14,6 @@ export const USAGE = `usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
   -p, --port N         port to serve on (default: ephemeral)
   -n, --no-open        don't open a browser, just print the URL
   -B, --browser APP    open in a specific app (macOS only), e.g. "Google Chrome"
-      --font FAMILY    font family pele measures labels with (default: sans-serif)
-      --font-size N    font size pele measures labels with (default: 16)
       --scheme MODE    auto | light | dark (default: auto). light or dark
                        fixes the SVG, and the preview, to that scheme; auto
                        follows the viewer.
@@ -27,8 +25,6 @@ const OPTIONS = {
   port: { type: "string", short: "p" },
   "no-open": { type: "boolean", short: "n" },
   browser: { type: "string", short: "B" },
-  font: { type: "string" },
-  "font-size": { type: "string" },
   scheme: { type: "string" },
   help: { type: "boolean", short: "h" },
 };
@@ -47,11 +43,9 @@ export function parse(argv) {
     diagram: readable(diagram),
     stylesheet: stylesheet ? readable(stylesheet) : null,
     output: values.output ? resolve(values.output) : null,
-    port: wholeNumber(values.port ?? "0", "--port", 0, 65535),
+    port: wholeNumber(values.port ?? "0", "--port", 65535),
     open: !values["no-open"],
     browserApp: values.browser ?? null,
-    fontFamily: values.font ?? null,
-    fontSize: values["font-size"] !== undefined ? wholeNumber(values["font-size"], "--font-size", 1) : null,
     scheme: oneOf(values.scheme ?? "auto", "--scheme", SCHEMES),
   };
 }
@@ -74,12 +68,10 @@ function oneOf(text, flag, choices) {
   return text;
 }
 
-function wholeNumber(text, flag, min, max = Infinity) {
+// A whole number from 0 to max.
+function wholeNumber(text, flag, max) {
   if (!/^\d+$/.test(text)) throw new UsageError(`${flag} must be a whole number, got: ${text}`);
   const n = Number(text);
-  if (n < min || n > max) {
-    const range = max === Infinity ? `at least ${min}` : `between ${min} and ${max}`;
-    throw new UsageError(`${flag} must be ${range}, got: ${text}`);
-  }
+  if (n > max) throw new UsageError(`${flag} must be between 0 and ${max}, got: ${text}`);
   return n;
 }

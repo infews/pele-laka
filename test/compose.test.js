@@ -33,12 +33,6 @@ test("css with XML-special characters stays well-formed", { skip: !hasXmllint &&
   assert.ok(svg.includes("]]]]><![CDATA[>"), "a literal ]]> is split so it cannot end the section");
 });
 
-test("font options reach pele", () => {
-  assert.match(compose(FLOW, "", { fontFamily: "Georgia" }), /--pele-font,Georgia/);
-  const width = (svg) => Number(svg.match(/width="([\d.]+)"/)[1]);
-  assert.ok(width(compose(FLOW, "", { fontSize: 24 })) > width(compose(FLOW, "")));
-});
-
 test("invalid diagrams throw PeleError", () => {
   assert.throws(() => compose("flowchart LR\n  A --> (((", ""), PeleError);
 });

@@ -1,5 +1,5 @@
 // Internal property tests of the Arguments subsystem: the whole-number rule
-// behind -p and --font-size. A redesign may rewrite or delete them.
+// behind -p. A redesign may rewrite or delete them.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fc from "fast-check";
@@ -18,13 +18,6 @@ test("-p accepts exactly the whole numbers 0 to 65535", () => {
   }));
 });
 
-test("--font-size accepts whole numbers from 1", () => {
-  fc.assert(fc.property(fc.integer({ min: 1, max: 10 ** 6 }), (n) => {
-    assert.equal(parse([flow, "--font-size", String(n)]).fontSize, n);
-  }));
-  assert.throws(() => parse([flow, "--font-size", "0"]), usageError(/^--font-size must be at least 1, got: 0$/));
-});
-
 // Text with something other than digits in it, anywhere: before, after or
 // between them. Leading "-" is left out, since parseArgs reads it as a flag.
 const notWholeNumber = fc.tuple(fc.stringMatching(/^\d{0,3}$/), fc.string({ minLength: 1 }), fc.stringMatching(/^\d{0,3}$/))
@@ -32,10 +25,9 @@ const notWholeNumber = fc.tuple(fc.stringMatching(/^\d{0,3}$/), fc.string({ minL
   .filter((text) => !/^\d+$/.test(text) && !text.startsWith("-"));
 
 test("anything but digits is not a whole number", () => {
-  fc.assert(fc.property(notWholeNumber, fc.constantFrom("-p", "--font-size"), (text, flag) => {
-    const name = flag === "-p" ? "--port" : "--font-size";
-    assert.throws(() => parse([flow, flag, text]), (e) =>
-      e instanceof UsageError && e.message === `${name} must be a whole number, got: ${text}`);
+  fc.assert(fc.property(notWholeNumber, (text) => {
+    assert.throws(() => parse([flow, "-p", text]), (e) =>
+      e instanceof UsageError && e.message === `--port must be a whole number, got: ${text}`);
   }));
   for (const text of ["1a", "a1", "1.5", " 1", "1 "]) assert.throws(() => parse([flow, "-p", text]), UsageError, text);
 });

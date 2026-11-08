@@ -7,13 +7,13 @@ export const SCHEMES = ["auto", "light", "dark"];
 // Renders a diagram with pele and embeds `css` inside the SVG, so the file
 // carries its own styling wherever it is opened. `scheme` other than "auto"
 // fixes the CSS to light or dark (see applyScheme).
-export function compose(mmd, css = "", { fontFamily, fontSize, scheme = "auto" } = {}) {
-  return styled(draw(mmd, { fontFamily, fontSize }), css, scheme);
+export function compose(mmd, css = "", { scheme = "auto" } = {}) {
+  return styled(render(mmd).svg, css, scheme);
 }
 
-export function readAndCompose({ diagram, stylesheet, fontFamily, fontSize, scheme }) {
+export function readAndCompose({ diagram, stylesheet, scheme }) {
   const { mmd, css } = read(diagram, stylesheet);
-  return compose(mmd, css, { fontFamily, fontSize, scheme });
+  return compose(mmd, css, { scheme });
 }
 
 // A page cannot force `prefers-color-scheme`, so a fixed scheme is applied by
@@ -33,13 +33,6 @@ function read(diagram, stylesheet) {
     mmd: readFileSync(diagram, "utf8"),
     css: stylesheet ? readFileSync(stylesheet, "utf8") : "",
   };
-}
-
-function draw(mmd, { fontFamily, fontSize }) {
-  const options = {};
-  if (fontFamily) options.fontFamily = fontFamily;
-  if (fontSize) options.fontSize = fontSize;
-  return render(mmd, options).svg;
 }
 
 function styled(svg, css, scheme) {

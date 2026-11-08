@@ -31,8 +31,6 @@ usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
   -p, --port N         port to serve on (default: ephemeral)
   -n, --no-open        don't open a browser, just print the URL
   -B, --browser APP    open in a specific app (macOS only), e.g. "Google Chrome"
-      --font FAMILY    font family pele measures labels with (default: sans-serif)
-      --font-size N    font size pele measures labels with (default: 16)
       --scheme MODE    auto | light | dark (default: auto). light or dark
                        fixes the SVG, and the preview, to that scheme; auto
                        follows the viewer.
@@ -226,19 +224,14 @@ flowchart LR
 
 ## Gotchas
 
-**Match the font you measure with.** pele sizes each label in Node, from a built-in
-width table for one font family (default `sans-serif`, 16px). If your CSS sets
-`--pele-font` to something with very different widths, labels will not fit their
-boxes. Pass the same family to the renderer:
-
-```sh
-pele-preview flow.mmd theme.css --font "Helvetica" --font-size 14
-```
-
-`--font` sets pele's `fontFamily`, which lands in the SVG as
-`font-family:var(--pele-font,<family>)`, so it is also the fallback when your CSS
-does not set the variable. Fonts are never embedded: viewers need the family
-installed.
+**pele lays out at its own size; your CSS restyles on top.** pele sizes each
+label in Node from a built-in width table at its default size (16px), whatever
+font family your CSS names, and draws the boxes to fit. Set the family with
+`--pele-font` on `.pele`; to make text smaller or larger, scale it relative to
+the size pele laid it out at (for example `font-size: calc(0.8 * 1em)`), and
+grow or shrink the box around it to match, as `pele-plex.css` does for edge
+labels. Text much wider than pele's table expects can overflow its box. Fonts
+are never embedded: viewers need the family installed.
 
 **Some properties only move through their variable.** pele applies the corner
 radius with an inline `style="rx:var(--_r)"`, and inline style beats any normal

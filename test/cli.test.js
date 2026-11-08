@@ -11,7 +11,7 @@ const css = new URL("./fixtures/theme.css", import.meta.url).pathname;
 test("diagram only: preview defaults", () => {
   assert.deepEqual(parse([flow]), {
     diagram: flow, stylesheet: null, output: null, port: 0,
-    open: true, browserApp: null, fontFamily: null, fontSize: null, scheme: "auto",
+    open: true, browserApp: null, scheme: "auto",
   });
 });
 
@@ -30,12 +30,10 @@ test("-o resolves the output path; the file need not exist", () => {
 });
 
 test("all flags", () => {
-  const o = parse([flow, "-p", "4000", "-n", "-B", "Google Chrome", "--font", "Georgia", "--font-size", "18"]);
+  const o = parse([flow, "-p", "4000", "-n", "-B", "Google Chrome"]);
   assert.equal(o.port, 4000);
   assert.equal(o.open, false);
   assert.equal(o.browserApp, "Google Chrome");
-  assert.equal(o.fontFamily, "Georgia");
-  assert.equal(o.fontSize, 18);
 });
 
 test("non-numeric port is a usage error", () => {
@@ -65,9 +63,10 @@ test("port must be 0-65535", () => {
   assert.equal(parse([flow, "-p", "0"]).port, 0);
 });
 
-test("font size must be at least 1", () => {
-  assert.throws(() => parse([flow, "--font-size", "0"]), (e) => e instanceof UsageError && /--font-size/.test(e.message));
-  assert.equal(parse([flow, "--font-size", "1"]).fontSize, 1);
+test("--font and --font-size are not options", () => {
+  for (const option of ["--font", "--font-size"]) {
+    assert.throws(() => parse([flow, option, "1"]), (e) => e instanceof UsageError && e.message.includes(option));
+  }
 });
 
 test("--scheme picks auto, light or dark", () => {
