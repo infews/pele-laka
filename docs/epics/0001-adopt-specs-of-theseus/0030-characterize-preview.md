@@ -40,9 +40,16 @@ Feature: Live preview in a browser
     When I fix the diagram and save
     Then the page recovers
 
-  Scenario: The scheme toggle
-    Then the page has an Auto / Light / Dark toggle that starts on --scheme
-    And each position shows the diagram exactly as -o with that --scheme would write it
+  Scenario Outline: The starting scheme
+    When I run pele-preview DIAGRAM STYLE --scheme <scheme>
+    Then the page shows the diagram exactly as -o with --scheme <scheme> would write it
+    And with auto, the diagram and the page follow the browser's light or dark setting
+
+    Examples:
+      | scheme |
+      | auto   |
+      | light  |
+      | dark   |
 
   Scenario: Stopping
     When I press Ctrl-C
@@ -56,7 +63,8 @@ Feature: Live preview in a browser
 
 ## EARS Specifications
 
-Not to be pinned: the Palette menu and `--palette`, which epic 0002 removes.
+Not to be pinned: the Palette menu, `--palette` and the Auto / Light / Dark
+toggle, which epic 0002 removes.
 
 ## Implementation Plan
 

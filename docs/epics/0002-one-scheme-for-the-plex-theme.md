@@ -39,6 +39,8 @@ Measured against carbon today (2026-11-08):
 - Meet the contrast and distinctness targets in both light and dark modes.
 - Remove `--palette`, the preview's Palette menu, and `data-pele-scheme` handling
   from pele-preview.
+- Remove the preview's Auto / Light / Dark toggle: the page shows the scheme
+  chosen with `--scheme`, and `auto` follows the browser.
 - Remove `--font` and `--font-size`; pele lays out at its default size.
 - Update the README and the theme's header comment, including how the theme
   styles edge labels.
@@ -63,6 +65,7 @@ The adoption epic, so the rest of the system is pinned before this work starts.
 - [Characterize the Plex theme](0002-one-scheme-for-the-plex-theme/0010-characterize-the-plex-theme.md)
 - [Only carbon](0002-one-scheme-for-the-plex-theme/0020-only-carbon.md)
 - [No palettes in pele-preview](0002-one-scheme-for-the-plex-theme/0030-no-palettes-in-pele-preview.md)
+- [Preview without a scheme toggle](0002-one-scheme-for-the-plex-theme/0035-preview-without-a-scheme-toggle.md)
 - [The stylesheet decides the type](0002-one-scheme-for-the-plex-theme/0040-the-stylesheet-decides-the-type.md)
 - [Readable text on tones](0002-one-scheme-for-the-plex-theme/0050-readable-text-on-tones.md)
 - [Every tone shows a color](0002-one-scheme-for-the-plex-theme/0060-every-tone-shows-a-color.md)
