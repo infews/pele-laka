@@ -6,20 +6,15 @@
 <title>pele-preview</title>
 <style>
   /* The page styles only its own chrome (ids prefixed pp-) and the backdrop
-     behind the diagram. Its colors follow the scheme toggle. */
-  :root { --pp-paper: #ffffff; --pp-ink: #1f1f1f; --pp-rule: #d4d4d4; color-scheme: light; }
-  :root[data-scheme="dark"] { --pp-paper: #161616; --pp-ink: #e6e6e6; --pp-rule: #3a3a3a; color-scheme: dark; }
+     behind the diagram. Its colors follow the diagram's scheme. */
+  :root { --pp-paper: #ffffff; --pp-ink: #1f1f1f; color-scheme: light; }
+  :root[data-scheme="dark"] { --pp-paper: #161616; --pp-ink: #e6e6e6; color-scheme: dark; }
   @media (prefers-color-scheme: dark) {
-    :root[data-scheme="auto"] { --pp-paper: #161616; --pp-ink: #e6e6e6; --pp-rule: #3a3a3a; color-scheme: dark; }
+    :root[data-scheme="auto"] { --pp-paper: #161616; --pp-ink: #e6e6e6; color-scheme: dark; }
   }
 
   body { margin: 0; font: 13px system-ui, sans-serif; background: var(--pp-paper); color: var(--pp-ink); }
 
-  #pp-bar { display: flex; justify-content: flex-end; align-items: center; gap: 12px; padding: 8px 12px; }
-  #pp-scheme { display: inline-flex; border: 1px solid var(--pp-rule); border-radius: 6px; overflow: hidden; }
-  #pp-scheme button { font: inherit; padding: 4px 10px; border: 0; background: transparent; color: inherit; cursor: pointer; }
-  #pp-scheme button + button { border-left: 1px solid var(--pp-rule); }
-  #pp-scheme button[aria-pressed="true"] { background: var(--pp-ink); color: var(--pp-paper); }
 
   #pp-error { display: none; margin: 0; padding: 12px 16px; white-space: pre-wrap;
               font: 12px ui-monospace, monospace; background: #fde8e8; color: #8a1c1c; }
@@ -31,13 +26,6 @@
 </style>
 </head>
 <body>
-<div id="pp-bar">
-  <div id="pp-scheme" role="group" aria-label="Color scheme">
-    <button type="button" data-scheme="auto" aria-pressed="true">Auto</button>
-    <button type="button" data-scheme="light" aria-pressed="false">Light</button>
-    <button type="button" data-scheme="dark" aria-pressed="false">Dark</button>
-  </div>
-</div>
 <pre id="pp-error"></pre>
 <div id="pp-stage"></div>
 <script type="module">
@@ -45,35 +33,25 @@
   // same --scheme would write it.
   const stage = document.getElementById("pp-stage");
   const error = document.getElementById("pp-error");
-  const buttons = document.querySelectorAll("#pp-scheme button");
-  let scheme = null;  // set from the server's starting scheme on first update
-  let shown = null;   // "revision:scheme" currently on screen
+  let shown = null;   // revision currently on screen
   let seq = 0;        // only the latest update() may touch the DOM
-
-  function setScheme(next) {
-    scheme = next;
-    document.documentElement.dataset.scheme = next;
-    for (const b of buttons) b.setAttribute("aria-pressed", String(b.dataset.scheme === next));
-  }
 
   async function update() {
     const mine = ++seq;
     const state = await (await fetch("/state.json", { cache: "no-store" })).json();
     if (mine !== seq) return;
-    if (scheme === null) setScheme(state.scheme);
-    const key = `${state.revision}:${scheme}`;
-    if (key === shown) return;
-    const query = new URLSearchParams({ scheme, rev: state.revision });
-    const svg = await (await fetch(`/diagram.svg?${query}`)).text();
+    // The page's own colors follow the scheme the diagram was written for.
+    document.documentElement.dataset.scheme = state.scheme;
+    if (state.revision === shown) return;
+    const svg = await (await fetch(`/diagram.svg?rev=${state.revision}`)).text();
     if (mine !== seq) return;
     stage.innerHTML = svg;
     error.textContent = state.error ?? "";
     error.classList.toggle("shown", Boolean(state.error));
     stage.classList.toggle("stale", Boolean(state.error));
-    shown = key;
+    shown = state.revision;
   }
 
-  for (const b of buttons) b.addEventListener("click", () => { setScheme(b.dataset.scheme); update(); });
   new EventSource("/events").onmessage = update;
 </script>
 </body>

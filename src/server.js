@@ -3,17 +3,17 @@ import { readFileSync } from "node:fs";
 
 const PAGE = readFileSync(new URL("./page.html", import.meta.url));
 
-// Serves the current render on 127.0.0.1. `render` returns
-// { auto, light, dark }, one SVG per scheme, or throws; `describe` turns the
-// thrown error into the text shown to the user. A failed render keeps the last
-// good SVGs on screen. `scheme` is what the page starts on.
+// Serves the current render on 127.0.0.1. `render` returns the SVG or throws;
+// `describe` turns the thrown error into the text shown to the user. A failed
+// render keeps the last good SVG on screen. `scheme` is the scheme the page
+// shows, so it can match its own colors to the diagram.
 export function startServer({ port = 0, render, describe = (e) => e.message, scheme = "auto" }) {
-  const state = { revision: 0, svgs: {}, error: null };
+  const state = { revision: 0, svg: "", error: null };
   const listeners = new Set();
 
   const refresh = () => {
     try {
-      state.svgs = render();
+      state.svg = render();
       state.error = null;
     } catch (error) {
       state.error = describe(error);
@@ -29,7 +29,7 @@ export function startServer({ port = 0, render, describe = (e) => e.message, sch
       case "/":
         return send(res, "text/html; charset=utf-8", PAGE);
       case "/diagram.svg":
-        return send(res, "image/svg+xml; charset=utf-8", svgFor(url.searchParams));
+        return send(res, "image/svg+xml; charset=utf-8", state.svg);
       case "/state.json":
         return send(res, "application/json", JSON.stringify({
           revision: state.revision, error: state.error, scheme,
@@ -45,12 +45,6 @@ export function startServer({ port = 0, render, describe = (e) => e.message, sch
         res.end("not found");
     }
   });
-
-  // Unknown schemes fall back to auto.
-  const svgFor = (params) => {
-    const wanted = params.get("scheme");
-    return (Object.hasOwn(state.svgs, wanted) ? state.svgs[wanted] : state.svgs.auto) ?? "";
-  };
 
   const initial = refresh();
 

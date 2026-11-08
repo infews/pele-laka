@@ -9,11 +9,9 @@ const get = async (url) => {
   return { status: res.status, type: res.headers.get("content-type"), body: await res.text() };
 };
 
-// render() returns one svg per color scheme.
-const every = (svg) => ({ auto: svg, light: svg, dark: svg });
 
 test("serves page, diagram and state on loopback", async () => {
-  const server = await startServer({ port: 0, render: () => every("<svg>one</svg>") });
+  const server = await startServer({ port: 0, render: () => "<svg>one</svg>" });
   try {
     assert.match(server.url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
     assert.deepEqual(server.initial, { revision: 1, error: null });
@@ -37,7 +35,7 @@ test("a failed render keeps the last good svg and reports the error", async () =
   let fail = false;
   const server = await startServer({
     port: 0,
-    render: () => { if (fail) throw new Error("boom"); return every("<svg>good</svg>"); },
+    render: () => { if (fail) throw new Error("boom"); return "<svg>good</svg>"; },
     describe: (e) => `d.mmd: ${e.message}`,
   });
   try {
@@ -54,7 +52,7 @@ test("a failed render keeps the last good svg and reports the error", async () =
 
 test("refresh pushes the new revision to event listeners", async () => {
   let n = 0;
-  const server = await startServer({ port: 0, render: () => every(`<svg>${++n}</svg>`) });
+  const server = await startServer({ port: 0, render: () => `<svg>${++n}</svg>` });
   try {
     const res = await fetch(`${server.url}events`);
     assert.equal(res.headers.get("content-type"), "text/event-stream");
@@ -70,28 +68,12 @@ test("refresh pushes the new revision to event listeners", async () => {
   }
 });
 
-test("?scheme= picks which svg is served; the starting scheme is in state.json", async () => {
-  const server = await startServer({
-    port: 0,
-    scheme: "dark",
-    render: () => ({ auto: "<svg>A</svg>", light: "<svg>L</svg>", dark: "<svg>D</svg>" }),
-  });
+test("the diagram is the one svg render returns; state.json says which scheme the page shows", async () => {
+  const server = await startServer({ port: 0, scheme: "dark", render: () => "<svg>D</svg>" });
   try {
-    assert.equal((await get(`${server.url}diagram.svg?scheme=light`)).body, "<svg>L</svg>");
-    assert.equal((await get(`${server.url}diagram.svg?scheme=dark`)).body, "<svg>D</svg>");
-    assert.equal((await get(`${server.url}diagram.svg`)).body, "<svg>A</svg>");
-    assert.equal((await get(`${server.url}diagram.svg?scheme=blue`)).body, "<svg>A</svg>");
+    assert.equal((await get(`${server.url}diagram.svg`)).body, "<svg>D</svg>");
+    assert.equal((await get(`${server.url}diagram.svg?scheme=light`)).body, "<svg>D</svg>");
     assert.equal(JSON.parse((await get(`${server.url}state.json`)).body).scheme, "dark");
-  } finally {
-    await server.close();
-  }
-});
-
-test("the page has a scheme toggle", async () => {
-  const server = await startServer({ port: 0, render: () => every("<svg/>") });
-  try {
-    const page = (await get(server.url)).body;
-    for (const scheme of ["auto", "light", "dark"]) assert.match(page, new RegExp(`data-scheme="${scheme}"`));
   } finally {
     await server.close();
   }
@@ -99,7 +81,7 @@ test("the page has a scheme toggle", async () => {
 
 test("without describe, a failed render reports the error's message", async () => {
   let fail = false;
-  const server = await startServer({ port: 0, render: () => { if (fail) throw new Error("boom"); return every("<svg/>"); } });
+  const server = await startServer({ port: 0, render: () => { if (fail) throw new Error("boom"); return "<svg/>"; } });
   try {
     fail = true;
     assert.equal(server.refresh().error, "boom");

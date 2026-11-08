@@ -16,15 +16,6 @@ export function readAndCompose({ diagram, stylesheet, fontFamily, fontSize, sche
   return compose(mmd, css, { fontFamily, fontSize, scheme });
 }
 
-// One SVG per scheme, { auto, light, dark }, from a single read and a single
-// pele render, so the preview can switch schemes without the variants
-// drifting apart.
-export function readAndComposeAll({ diagram, stylesheet, fontFamily, fontSize }) {
-  const { mmd, css } = read(diagram, stylesheet);
-  const svg = draw(mmd, { fontFamily, fontSize });
-  return Object.fromEntries(SCHEMES.map((scheme) => [scheme, styled(svg, css, scheme)]));
-}
-
 // A page cannot force `prefers-color-scheme`, so a fixed scheme is applied by
 // rewriting the CSS: each `(prefers-color-scheme: X)` becomes a condition that
 // is always true when X is the chosen scheme and never true otherwise.

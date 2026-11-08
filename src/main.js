@@ -1,7 +1,7 @@
 // The pele-preview command: parses the arguments, then exports or previews.
 import { writeFileSync } from "node:fs";
 import { parse, UsageError, HelpRequested } from "./cli.js";
-import { readAndCompose, readAndComposeAll, describeError } from "./compose.js";
+import { readAndCompose, describeError } from "./compose.js";
 import { startServer } from "./server.js";
 import { watchFiles } from "./watcher.js";
 import { launch } from "./browser.js";
@@ -49,7 +49,7 @@ async function preview() {
     server = await startServer({
       port: options.port,
       scheme: options.scheme,
-      render: () => readAndComposeAll(options),
+      render: () => readAndCompose(options),
       describe,
     });
   } catch (error) {

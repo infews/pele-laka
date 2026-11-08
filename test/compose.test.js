@@ -84,7 +84,7 @@ test("describeError handles non-Error throws and empty messages", () => {
 
 // --- color schemes ---------------------------------------------------------
 
-import { applyScheme, readAndComposeAll, SCHEMES } from "../src/compose.js";
+import { applyScheme, SCHEMES } from "../src/compose.js";
 
 const SCHEMED_CSS = [
   ".pele { --pele-bg: #fff; }",
@@ -116,12 +116,4 @@ test("light is the mirror image", () => {
 test("compose applies the scheme option", () => {
   assert.match(compose(FLOW, SCHEMED_CSS, { scheme: "dark" }), /@media \(min-width: 0px\)/);
   assert.match(compose(FLOW, SCHEMED_CSS), /prefers-color-scheme: dark/);
-});
-
-test("readAndComposeAll gives one svg per scheme", () => {
-  const all = readAndComposeAll({ diagram: fixture("flow.mmd"), stylesheet: fixture("theme.css") });
-  assert.deepEqual(Object.keys(all), SCHEMES);
-  assert.match(all.auto, /prefers-color-scheme: dark/);
-  assert.match(all.dark, /@media \(min-width: 0px\)/);
-  assert.match(all.light, /@media \(not \(min-width: 0px\)\)/);
 });
