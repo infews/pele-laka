@@ -139,18 +139,16 @@ so `--scheme` and the toggle cannot reach it.)
 
 ### Palettes
 
-A stylesheet can offer several palettes as `[data-pele-scheme="NAME"]` blocks, as
-`pele-plex.css` does with `carbon`, `paper`, `harbor` and `moss`. In a web page you
-would put that attribute on the diagram's container; here nothing wraps the SVG,
-so `--palette NAME` writes it onto the root `<svg>` itself:
+A stylesheet can offer several palettes as `[data-pele-scheme="NAME"]` blocks.
+In a web page you would put that attribute on the diagram's container; here
+nothing wraps the SVG, so `--palette NAME` writes it onto the root `<svg>` itself:
 
 ```sh
-pele-preview diagram.mmd pele-plex.css --palette paper --scheme dark -o diagram.svg
+pele-preview diagram.mmd my-theme.css --palette night --scheme dark -o diagram.svg
 ```
 
-Without `--palette` the stylesheet's default applies (for `pele-plex.css`, the
-one also declared on `:root`). A name the stylesheet doesn't define still
-exports, with a warning on stderr.
+Without `--palette` the stylesheet's default applies. A name the stylesheet
+doesn't define still exports, with a warning on stderr.
 
 The preview page finds the palettes by scanning your stylesheet for
 `data-pele-scheme` selectors and offers them in a **Palette** menu next to the
@@ -164,12 +162,12 @@ theme, so Dark shows the light diagram on a dark page.
 
 ## Coloring nodes and subgraphs (`pele-plex.css`)
 
-`pele-plex.css` is an IBM Plex theme for pele. Use it as the stylesheet, and
-pick a palette (`carbon`, the default, `paper`, `harbor` or `moss`) with
-`--palette`:
+`pele-plex.css` is an example IBM Plex theme for pele, with one color scheme
+built on IBM Carbon's neutrals and categorical palette, in light and dark. Use
+it as the stylesheet, or copy it as a starting point for your own:
 
 ```sh
-pele-preview diagram.mmd pele-plex.css --palette harbor
+pele-preview diagram.mmd pele-plex.css
 ```
 
 The eight series colors are available as classes named `tone-1` … `tone-8`. You don't need any `classDef`.
