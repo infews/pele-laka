@@ -36,8 +36,6 @@ usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
       --scheme MODE    auto | light | dark (default: auto). With -o, light or
                        dark fixes the SVG to that scheme; auto follows the
                        viewer. In preview, the scheme the page starts on.
-      --palette NAME   pick one of the stylesheet's [data-pele-scheme="NAME"]
-                       palettes (default: the stylesheet's own default)
   -h, --help           show this message
 ```
 
@@ -136,24 +134,6 @@ can pin it:
 
 (`color-scheme: light dark` also follows the OS, but no media query is involved,
 so `--scheme` and the toggle cannot reach it.)
-
-### Palettes
-
-A stylesheet can offer several palettes as `[data-pele-scheme="NAME"]` blocks.
-In a web page you would put that attribute on the diagram's container; here
-nothing wraps the SVG, so `--palette NAME` writes it onto the root `<svg>` itself:
-
-```sh
-pele-preview diagram.mmd my-theme.css --palette night --scheme dark -o diagram.svg
-```
-
-Without `--palette` the stylesheet's default applies. A name the stylesheet
-doesn't define still exports, with a warning on stderr.
-
-The preview page finds the palettes by scanning your stylesheet for
-`data-pele-scheme` selectors and offers them in a **Palette** menu next to the
-scheme toggle (hidden when there are none). `--palette` picks where it starts;
-the list updates when you edit the stylesheet.
 
 Without a stylesheet there is nothing to switch: pele's defaults are a light
 theme, so Dark shows the light diagram on a dark page.

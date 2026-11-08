@@ -1,0 +1,75 @@
+// The pele-preview command: parses the arguments, then exports or previews.
+import { writeFileSync } from "node:fs";
+import { parse, UsageError, HelpRequested } from "./cli.js";
+import { readAndCompose, readAndComposeAll, describeError } from "./compose.js";
+import { startServer } from "./server.js";
+import { watchFiles } from "./watcher.js";
+import { launch } from "./browser.js";
+
+const options = parseOrExit(process.argv.slice(2));
+const describe = (error) => describeError(error, options.diagram);
+
+if (options.output) {
+  exportSvg();
+} else {
+  await preview();
+}
+
+function parseOrExit(argv) {
+  try {
+    return parse(argv);
+  } catch (error) {
+    if (error instanceof HelpRequested) {
+      console.log(error.message);
+      process.exit(0);
+    }
+    if (error instanceof UsageError) {
+      console.error(error.message);
+      process.exit(2);
+    }
+    throw error;
+  }
+}
+
+// @subsystem Export
+function exportSvg() {
+  try {
+    writeFileSync(options.output, readAndCompose(options));
+    console.log(`wrote ${options.output}`);
+  } catch (error) {
+    console.error(describe(error));
+    process.exit(1);
+  }
+}
+
+// @subsystem Preview
+async function preview() {
+  let server;
+  try {
+    server = await startServer({
+      port: options.port,
+      scheme: options.scheme,
+      render: () => readAndComposeAll(options),
+      describe,
+    });
+  } catch (error) {
+    console.error(`could not start server: ${error.message}`);
+    process.exit(1);
+  }
+
+  const report = ({ revision, error }) =>
+    error ? console.error(error) : console.log(`rendered (revision ${revision})`);
+  if (server.initial.error) console.error(server.initial.error);
+
+  const files = [options.diagram, options.stylesheet].filter(Boolean);
+  const watcher = watchFiles(files, () => report(server.refresh()));
+
+  console.log(`pele-preview: ${server.url}  (Ctrl-C to stop)`);
+  if (options.open) launch(server.url, { app: options.browserApp });
+
+  process.once("SIGINT", async () => {
+    watcher.close();
+    await server.close();
+    process.exit(0);
+  });
+}

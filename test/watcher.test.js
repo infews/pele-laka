@@ -14,6 +14,11 @@ const tempFile = () => {
   return path;
 };
 
+test("only paths can be watched", () => {
+  assert.throws(() => watchFiles([null], () => {}), { name: "TypeError", message: "watchFiles: every path must be a string" });
+  assert.throws(() => watchFiles(["a", undefined], () => {}), TypeError);
+});
+
 test("a burst of writes produces one callback", async () => {
   const path = tempFile();
   let calls = 0;

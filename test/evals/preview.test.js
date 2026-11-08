@@ -114,6 +114,12 @@ function fakeOpeners() {
   return { env: { ...process.env, PATH: `${dir}:${process.env.PATH}` }, log };
 }
 
+// The fake opener writes its line in pieces; read it only once it's complete.
+const openedLine = (log) => {
+  const text = existsSync(log) && readFileSync(log, "utf8");
+  return text && text.endsWith("\n") ? text : null;
+};
+
 const freePort = () => new Promise((resolve) => {
   const server = createServer().listen(0, "127.0.0.1", () => {
     const { port } = server.address();
@@ -128,7 +134,7 @@ test("PREVIEW-CON-001 without -n the URL is opened with the platform's opener", 
   const { diagram } = project();
   const { env, log } = fakeOpeners();
   await withPreview([diagram], async ({ url }) => {
-    const line = await waitFor(() => existsSync(log) && readFileSync(log, "utf8"), 3000);
+    const line = await waitFor(() => openedLine(log), 3000);
     const opener = process.platform === "darwin" ? "open" : "xdg-open";
     assert.equal(line, `${opener} [${url}]\n`);
   }, { env });
@@ -139,7 +145,7 @@ test("PREVIEW-CON-002 -B APP opens the URL with open -a APP on macOS", { skip: p
   const { diagram } = project();
   const { env, log } = fakeOpeners();
   await withPreview([diagram, "-B", "Some Browser"], async ({ url }) => {
-    const line = await waitFor(() => existsSync(log) && readFileSync(log, "utf8"), 3000);
+    const line = await waitFor(() => openedLine(log), 3000);
     assert.equal(line, `open [-a] [Some Browser] [${url}]\n`);
   }, { env });
 });

@@ -37,7 +37,13 @@ The Palette menu has no eval of its own: without `--palette`, `PREVIEW-E2E-004`
 (the page shows what `-o` writes) covers it.
 
 ## Implementation Plan
-- [ ] Drop `--palette` and the unknown-palette warning; remove the option from the README's usage block and delete the Palettes section. (Arguments, Export) Makes `CLI-E2E-009` and `CLI-INV-004` pass.
-- [ ] Delete `setPalette`, `palettesIn`, `PALETTE_NAME` and the palettes `readAndComposeAll` reports; drop the server's `?palette=` and palette state, and the page's Palette menu. Delete their internal tests, `test/bin.test.js` and `test/fixtures/palettes.css`. (Compose, Preview)
+- [x] Move bin's body into `src/main.js` (Export, Preview markers move with it) so it can be mutation tested; then drop `--palette` and the unknown-palette warning; remove the option from the README's usage block and delete the Palettes section and `test/bin.test.js`, which only tested `--palette`. (Arguments, Export) Makes `CLI-E2E-009` and `CLI-INV-004` pass.
+  - Equivalent mutants in `src/main.js`: treating any parse error as a usage error (`parse` throws only `HelpRequested` or `UsageError`); skipping `watcher.close()` and `process.exit(0)` on Ctrl-C (the process exits 0 once the server and watchers close).
+- [ ] Delete `setPalette`, `palettesIn`, `PALETTE_NAME` and the palettes `readAndComposeAll` reports; drop the server's `?palette=` and palette state, and the page's Palette menu. Delete their internal tests and `test/fixtures/palettes.css`. (Compose, Preview)
 
 ## Issues
+
+- [x] **Development** — Mutation testing can't run on `bin/pele-preview`: Stryker has no parser for a file without a `.js` extension, so the Export and Preview entry points (and `npm run mutate`, whose config lists the file) have never been mutation tested. Task 1 changed that file. Options: (a) move bin's body into `src/main.js` with the `@subsystem Export` / `Preview` markers, leaving `bin/pele-preview` as a two-line shim, and fix `stryker.config.json`; (b) record that `bin/` is exempt, like CSS. I'd do (a) as a new first step of task 1: no behavior changes, and the CLI, EXPORT and PREVIEW evals guard it.
+  - Answer: (a) — move bin's body into `src/main.js` (2026-11-08).
+- [x] **Development** — Task 1 added a path check to `src/watcher.js` (Preview), and mutation testing that file leaves 13 survivors in code this story didn't change: redundant guards in `close()` (equivalent), the `fs.watch` error handler (untestable without faking `watch`), and a real gap — a retry already scheduled can re-attach a watcher after `close()`. Options: (a) mutation-test only the lines a task changes, record that rule in CLAUDE.md, and add a story to harden the watcher (inject `watch` for tests, close the re-attach gap); (b) harden the watcher now, inside this story. I'd do (a): it keeps this story about palettes, and the watcher work is real but separate.
+  - Answer: (a) — mutation-test the lines a task changes; the watcher gets its own story, [Harden the file watcher](../0003-harden-pele-preview/0010-harden-the-file-watcher.md) (2026-11-08).

@@ -5,6 +5,7 @@ import { watch } from "node:fs";
 // it over the old one, which ends an fs.watch; on "rename" we re-attach to
 // the new file at the same path.
 export function watchFiles(paths, onChange, { delay = 100 } = {}) {
+  if (!paths.every((path) => typeof path === "string")) throw new TypeError("watchFiles: every path must be a string");
   let timer = null;
   let closed = false;
   const watchers = new Map();
