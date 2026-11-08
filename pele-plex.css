@@ -175,6 +175,8 @@
 :root {
   --plex-tone-node-mix: 18%;     /* how much tone is mixed into a node's fill */
   --plex-tone-cluster-mix: 9%;   /* …and into a subgraph's fill */
+  --plex-tone-title-mix: 75%;    /* how much tone is in a subgraph's title; the rest is
+                                    the foreground, so every title reads at 4.5:1 */
 }
 
 /* Nodes: tinted fill, full-tone outline. Detail lines (cylinder lids, subroutine
@@ -204,8 +206,9 @@
 }
 
 /* Subgraphs: a lighter tint, an opaque fill (Pele draws them at 0.5 opacity), a
-   tone outline and title. A title Pele moves off the box to dodge an edge is drawn
-   outside this group and keeps the default color. */
+   tone outline, and a title in the tone deepened toward the foreground. A title Pele
+   moves off the box to dodge an edge is drawn outside this group and keeps the
+   default color. */
 .pele .pele-cluster:is(.tone-1, .tone-2, .tone-3, .tone-4, .tone-5, .tone-6, .tone-7, .tone-8)
   > rect {
   fill: color-mix(in srgb, var(--plex-tone) var(--plex-tone-cluster-mix), var(--pele-bg));
@@ -214,7 +217,7 @@
 }
 .pele .pele-cluster:is(.tone-1, .tone-2, .tone-3, .tone-4, .tone-5, .tone-6, .tone-7, .tone-8)
   > .pele-cluster-label {
-  fill: var(--plex-tone);
+  fill: color-mix(in srgb, var(--plex-tone) var(--plex-tone-title-mix), var(--pele-fg));
 }
 
 

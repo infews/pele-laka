@@ -188,9 +188,10 @@ flowchart LR
 |---|---|---|---|
 | `tone-N` on a node | 18% tint of the color | Full color | Normal foreground |
 | `tone-N` + `solid` | Full color | Full color | Near-black or white, whichever reads better on that tone |
-| `tone-N` on a subgraph | 9% tint, opaque | Full color | Title in full color |
+| `tone-N` on a subgraph | 9% tint, opaque | Full color | Title in the color, 25% toward the foreground |
 
-The tint strengths are adjustable with `--plex-tone-node-mix` and `--plex-tone-cluster-mix`.
+The tint strengths are adjustable with `--plex-tone-node-mix` and `--plex-tone-cluster-mix`, and
+how much of the color is in a subgraph's title with `--plex-tone-title-mix` (75%).
 
 ### Hiding nodes and subgraphs
 
@@ -248,7 +249,7 @@ Every step is a knob you can set on `:root` (or any ancestor of the diagram):
 
 - **`solid` without a tone** falls back to the scheme's accent color.
 - **Moved subgraph titles keep the default color.** If a subgraph's title would cross an edge, Pele draws it outside the subgraph's group, so the tone class doesn't reach it.
-- **Some carbon tones are weak in dark mode.** Tone 6 is near-white, so a tone-6 subgraph barely tints. Solid tone 1 has only fair text contrast.
+- **Tone 6 is weak in dark mode.** It is near-white, so a tone-6 subgraph barely tints.
 
 ---
 

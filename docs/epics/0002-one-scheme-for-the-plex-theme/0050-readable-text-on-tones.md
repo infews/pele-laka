@@ -56,6 +56,6 @@ the tone; subgraph titles are the tone mixed toward the foreground.
 
 ## Implementation Plan
 - [x] Give each tone an "on" color for text set on it (near-black or white, per tone and mode) and use it for solid labels and detail lines; update the README's "What each one looks like". (PlexTheme) Makes `PLEX-INV-003` pass.
-- [ ] Mix subgraph titles 25% toward the foreground through a new `--plex-tone-title-mix` knob; update the README's table, knob note and edge cases. (PlexTheme) Makes `PLEX-INV-005` pass.
+- [x] Mix subgraph titles 25% toward the foreground through a new `--plex-tone-title-mix` knob; update the README's table, knob note and edge cases. (PlexTheme) Makes `PLEX-INV-005` pass.
 
 ## Issues
