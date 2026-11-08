@@ -58,12 +58,23 @@ Feature: The IBM Plex theme (carbon)
     When the stylesheet sets any --plex-edge-label-* knob (scale, tracking, weight, padding, radius, stroke width)
     Then the edge labels follow it
 
+  Scenario: Hiding nodes and subgraphs
+    Given a node with :::hidden or a "class A hidden" line
+    Then the node is not drawn
+    Given a subgraph with a "class G hidden" line
+    Then its box and title are not drawn, but the nodes inside it are
+
   Scenario: Adjustable tints
     When the stylesheet sets --plex-tone-node-mix or --plex-tone-cluster-mix
     Then node or subgraph tints use that strength
 ```
 
 ## EARS Specifications
+- `PLEX-CON-001`
+- `PLEX-E2E-001` … `PLEX-E2E-018`
+
+Not pinned, by the PM's decision: fonts, edge line widths, corner radius and
+weights. They belong to the stylesheet.
 
 ## Implementation Plan
 
@@ -71,3 +82,7 @@ Feature: The IBM Plex theme (carbon)
 
 - [x] **Adoption survey** — The README tells users to use `pele-plex.css`, but `package.json` `files` lists only `bin` and `src`, so it isn't in the npm package. Is the theme part of the product, or an example that lives only in the repo? I'd ship it: add it to `files` and keep this story.
   - Answer: Ship it — it's an example theme for anyone to use; added to `files` (2026-11-08). Epic 0002 cuts it down to a single color scheme.
+- [x] **Updating Evals** — Hiding a node leaves edges into it drawn, pointing at empty space, and edges can't take the class (pele doesn't copy it). Intended? I'd pin it and document Mermaid's invisible link `~~~` for joining hidden nodes.
+  - Answer: Intended; pinned, and the README documents `~~~` (2026-11-08).
+- [x] **Updating Evals** — Hiding a subgraph hides its box and title but keeps the nodes inside. Intended? I'd pin it: an invisible grouping for layout.
+  - Answer: Intended; pinned (2026-11-08).

@@ -214,6 +214,28 @@ flowchart LR
 
 The tint strengths are adjustable with `--plex-tone-node-mix` and `--plex-tone-cluster-mix`.
 
+### Hiding nodes and subgraphs
+
+The `hidden` class removes a node from view while it still takes part in the
+layout, which makes it handy as a spacer:
+
+```mermaid
+flowchart LR
+  A[Shown] ~~~ S[Spacer]:::hidden
+  S ~~~ B[Also shown]
+
+  subgraph Lane
+    B
+  end
+  class Lane hidden
+```
+
+- **Nodes:** `A:::hidden` or `class A hidden`.
+- **Subgraphs:** `class Lane hidden` hides the box and title only. The nodes
+  inside are still drawn; hide them with their own class line if you want.
+- **Edges** can't be hidden: an edge into a hidden node is still drawn. Join
+  hidden nodes with Mermaid's invisible link, `~~~`, which draws nothing.
+
 ### Edge cases
 
 - **`solid` without a tone** falls back to the scheme's accent color.

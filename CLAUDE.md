@@ -4,18 +4,12 @@ This project follows the Specs of Theseus method: the evals in `docs/evals/` are
 the spec, and work is planned in `docs/epics/`. Subsystems are marked in the code
 with `@subsystem` comments.
 
-## Adoption in progress
-
-`CLI`, `EXPORT` and `PREVIEW` have evals. `PLEX` (`pele-plex.css`) doesn't yet:
-it is adopted in the first story of
-`docs/epics/0002-one-scheme-for-the-plex-theme.md`. Until then, no redesign may
-change the theme's behavior except by a story that says so.
-
 ## Tests
 
 Eval tests live in `test/evals/<area>.test.js`, tagged `@spec <ID>`, and drive
-the CLI rather than the modules behind it. Every other test is internal: a
-redesign may rewrite or delete it (but see "Adoption in progress").
+the CLI rather than the modules behind it (the `PLEX` tests export with
+`pele-plex.css` and read the result in Chromium). Every other test is internal:
+a redesign may rewrite or delete it.
 
 ## Commands
 
