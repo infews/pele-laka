@@ -223,6 +223,17 @@ test("EXPORT-INV-004 a fixed scheme leaves no prefers-color-scheme condition", {
   }), RUNS);
 });
 
+test("EXPORT-INV-006 export only inserts the style element into pele's svg", () => {
+  // @spec EXPORT-INV-006
+  // EXPORT-CON-001 fixes where the stylesheet goes: first child of the root,
+  // in a CDATA section. Take it out and pele's own svg must remain.
+  const pele = render(readFileSync(fixture("flow.mmd"), "utf8")).svg;
+  fc.assert(fc.property(cssText(QUERY), fc.constantFrom("auto", "light", "dark"), (css, scheme) => {
+    const svg = exportWith(css, "--scheme", scheme);
+    assert.equal(svg.replace(/<style><!\[CDATA\[[^]*?\]\]><\/style>/, ""), pele);
+  }), RUNS);
+});
+
 test("EXPORT-INV-005 a fixed scheme changes only the prefers-color-scheme conditions", { ...needsXmllint }, () => {
   // @spec EXPORT-INV-005
   // Plain text between conditions must come through untouched; each condition

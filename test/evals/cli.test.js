@@ -3,7 +3,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync, chmodSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import fc from "fast-check";
@@ -14,8 +14,19 @@ const diagram = fixture("flow.mmd");
 const stylesheet = fixture("theme.css");
 const tempDir = () => mkdtempSync(join(tmpdir(), "pele-preview-eval-"));
 
+// A PATH whose open and xdg-open do nothing, so a run that wrongly starts a
+// preview can't open a real browser.
+const quietEnv = (() => {
+  const dir = tempDir();
+  for (const name of ["open", "xdg-open"]) {
+    writeFileSync(join(dir, name), "#!/bin/sh\nexit 0\n");
+    chmodSync(join(dir, name), 0o755);
+  }
+  return { ...process.env, PATH: `${dir}:${process.env.PATH}` };
+})();
+
 // A server that started would keep running, so give up after a few seconds.
-const run = (...args) => spawnSync(process.execPath, [bin, ...args], { encoding: "utf8", timeout: 5000 });
+const run = (...args) => spawnSync(process.execPath, [bin, ...args], { encoding: "utf8", timeout: 5000, env: quietEnv });
 
 const README_USAGE = (() => {
   const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
@@ -110,6 +121,16 @@ test("CLI-E2E-008 a --scheme other than auto, light or dark exits 2", () => {
   }
 });
 
+test("CLI-E2E-009 --palette is reported as an unknown option and exits 2", () => {
+  // @spec CLI-E2E-009
+  for (const args of [[diagram, "-n", "--palette", "paper"], [diagram, stylesheet, "--palette", "x", "-o", "x.svg"]]) {
+    const result = run(...args);
+    assert.equal(result.status, 2, args.join(" "));
+    assert.match(result.stderr, /--palette/);
+    assert.match(result.stderr, /\n\nusage: pele-preview /);
+  }
+});
+
 // --- Invariants -------------------------------------------------------------
 
 // A command line with at least one thing wrong with it, and optionally -o, so
@@ -146,6 +167,12 @@ test("CLI-INV-002 invalid arguments print nothing to stdout", () => {
   fc.assert(fc.property(badCommandLine, ({ args }) => {
     assert.equal(run(...args).stdout, "");
   }), { numRuns: 30 });
+});
+
+test("CLI-INV-004 the README never mentions --palette or data-pele-scheme", () => {
+  // @spec CLI-INV-004
+  const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
+  assert.equal(readme.match(/--palette|data-pele-scheme/g), null);
 });
 
 test("CLI-INV-003 the usage text is the README's", () => {

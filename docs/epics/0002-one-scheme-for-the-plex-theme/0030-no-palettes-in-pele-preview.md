@@ -28,6 +28,13 @@ Feature: No palette option
 Changes `EXPORT-E2E-003`: drop "and no `--palette`".
 
 ## EARS Specifications
+- `EXPORT-E2E-003` (changed: no longer mentions `--palette`)
+- `EXPORT-INV-006` (new)
+- `CLI-E2E-009` (new)
+- `CLI-INV-004` (new)
+
+The Palette menu has no eval of its own: without `--palette`, `PREVIEW-E2E-004`
+(the page shows what `-o` writes) covers it.
 
 ## Implementation Plan
 
