@@ -1,5 +1,5 @@
-// Export behavior is pinned by test/evals/export.test.js; these cover the
-// command line and preview until those areas are adopted.
+// Export and the shared command-line rules are pinned by test/evals/. These
+// cover --palette (until epic 0002 removes it) and preview (until adopted).
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync, spawn } from "node:child_process";
@@ -24,18 +24,6 @@ test("a --palette the stylesheet doesn't define still exports, with a warning", 
   const result = run(fixture("flow.mmd"), fixture("palettes.css"), "--palette", "harbor", "-o", out);
   assert.equal(result.status, 0);
   assert.match(result.stderr, /palette "harbor" is not defined in .*palettes\.css \(it defines: carbon, paper, moss\)/);
-});
-
-test("usage errors exit 2", () => {
-  const result = run("missing.mmd");
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /no such file: missing\.mmd/);
-});
-
-test("--help prints usage and exits 0", () => {
-  const result = run("--help");
-  assert.equal(result.status, 0);
-  assert.match(result.stdout, /^usage: pele-preview/);
 });
 
 test("preview mode serves the composed svg and exits 0 on SIGINT", { timeout: 5000 }, async () => {

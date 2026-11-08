@@ -1,3 +1,5 @@
+// Internal tests of the Arguments subsystem. A redesign may rewrite or delete
+// them; the CLI evals (test/evals/cli.test.js) are what must keep passing.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { resolve } from "node:path";

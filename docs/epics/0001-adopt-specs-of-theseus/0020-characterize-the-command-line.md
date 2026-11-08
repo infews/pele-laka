@@ -37,6 +37,8 @@ Feature: Command-line arguments shared by export and preview
 ```
 
 ## EARS Specifications
+- `CLI-E2E-001` … `CLI-E2E-008`
+- `CLI-INV-001`, `CLI-INV-002`, `CLI-INV-003`
 
 Not to be pinned: `--palette`, `--font` and `--font-size`, which epic 0002 removes.
 
