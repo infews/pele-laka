@@ -5,6 +5,7 @@ exported with it. Fonts, line widths, radius and weights are the stylesheet's
 business and are not pinned. Tests: `test/evals/plex.test.js`.
 
 ## Invariants
+- `PLEX-INV-001`: The README and the theme's comments shall never name the removed schemes paper, harbor or moss.
 
 ## Contracts
 - `PLEX-CON-001`: The theme shall set pele's color variables to the carbon values in the table below, for light and for dark.

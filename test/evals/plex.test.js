@@ -379,3 +379,15 @@ test("PLEX-E2E-018 a hidden subgraph loses its box and title but not its nodes",
     assert.equal(await drawn(page, "D"), true, "the node inside");
   });
 });
+
+// --- Invariants -------------------------------------------------------------
+
+test("PLEX-INV-001 the README and the theme's comments never name paper, harbor or moss", () => {
+  // @spec PLEX-INV-001
+  const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
+  const comments = (THEME.match(/\/\*[^]*?\*\//g) ?? []).join("\n");
+  for (const [where, text] of [["README.md", readme], ["pele-plex.css comments", comments]]) {
+    const named = text.match(/\b(paper|harbor|moss)\b/gi);
+    assert.equal(named, null, `${where} names ${named}`);
+  }
+});

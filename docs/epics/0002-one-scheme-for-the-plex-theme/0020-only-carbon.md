@@ -22,6 +22,11 @@ Feature: One color scheme
 ```
 
 ## EARS Specifications
+- `PLEX-INV-001` (new)
+
+Choosing a scheme is no longer a feature, so nothing tests it (PM, 2026-11-08):
+the theme's look is the stylesheet's responsibility, already pinned by
+`PLEX-CON-001`.
 
 ## Implementation Plan
 
