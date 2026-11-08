@@ -31,6 +31,12 @@ could not be reproduced in Chromium with `pele-plex.css` or the test theme;
 removing the toggle makes the question moot.
 
 ## EARS Specifications
+- `PREVIEW-INV-003` (new)
+
+Already pinned: `PREVIEW-E2E-004` (the page shows what `-o` writes for the same
+`--scheme`), `PREVIEW-E2E-005` (`auto` follows the browser without a reload) and
+`PREVIEW-E2E-006` (`light` and `dark` win over the browser). The toggle itself
+gets no test: removed features aren't tested (PM).
 
 ## Implementation Plan
 
