@@ -197,16 +197,6 @@ test("PLEX-E2E-006 a solid toned node is filled and outlined in its tone", async
   });
 });
 
-test("PLEX-E2E-007 a solid node's text is the background color", async () => {
-  // @spec PLEX-E2E-007
-  await eachTone(async (page, mode, n, c) => {
-    for (const id of [`S${n}`, "SA"]) {
-      const { fill } = await computed(page, `[data-id="${id}"] text`, ["fill"]);
-      sameColor(fill, c["--pele-bg"], `${mode} ${id} text`);
-    }
-  });
-});
-
 test("PLEX-E2E-008 a solid node with no tone uses the accent color", async () => {
   // @spec PLEX-E2E-008
   for (const mode of MODES) {
@@ -227,14 +217,11 @@ test("PLEX-E2E-009 a toned subgraph is filled, opaque, with a 9% tint over the b
   });
 });
 
-test("PLEX-E2E-010 a toned subgraph is outlined and titled in its tone", async () => {
+test("PLEX-E2E-010 a toned subgraph is outlined in its tone", async () => {
   // @spec PLEX-E2E-010
   await eachTone(async (page, mode, n, c) => {
     const { stroke } = await computed(page, `.pele-cluster[data-id="G${n}"] > rect`, ["stroke"]);
     sameColor(stroke, c[`--pele-series-${n}`], `${mode} group ${n} outline`);
-    const title = await computed(page, `.pele-cluster[data-id="G${n}"] > .pele-cluster-label`, ["fill"]);
-    assert.ok(title, `group ${n} has its title inside its group`);
-    sameColor(title.fill, c[`--pele-series-${n}`], `${mode} group ${n} title`);
   });
 });
 
@@ -408,4 +395,60 @@ test("PLEX-INV-001 the README and the theme's comments never name paper, harbor 
     const named = text.match(/\b(paper|harbor|moss)\b/gi);
     assert.equal(named, null, `${where} names ${named}`);
   }
+});
+
+// WCAG 2 contrast ratio of two computed colors.
+function contrast(a, b) {
+  const lum = (text) => {
+    const [r, g, bl] = rgb(text).map((c) => {
+      const s = c / 255;
+      return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl;
+  };
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+function atLeast(ratio, minimum, what) {
+  assert.ok(ratio >= minimum, `${what}: ${ratio.toFixed(2)}:1, needs ${minimum}:1`);
+}
+
+const textOn = async (page, id) => {
+  const box = await computed(page, `[data-id="${id}"] > rect`, ["fill"]);
+  const text = await computed(page, `[data-id="${id}"] text`, ["fill"]);
+  return contrast(text.fill, box.fill);
+};
+
+test("PLEX-INV-003 solid node text has at least 4.5:1 contrast", async () => {
+  // @spec PLEX-INV-003
+  await eachTone(async (page, mode, n) => atLeast(await textOn(page, `S${n}`), 4.5, `${mode} solid ${n}`));
+  for (const mode of MODES) {
+    await inPage(exported(TONED, { scheme: mode }), mode, async (page) => atLeast(await textOn(page, "SA"), 4.5, `${mode} solid, no tone`));
+  }
+});
+
+test("PLEX-INV-004 toned node text has at least 4.5:1 contrast", async () => {
+  // @spec PLEX-INV-004
+  await eachTone(async (page, mode, n) => atLeast(await textOn(page, `T${n}`), 4.5, `${mode} tone ${n}`));
+});
+
+test("PLEX-INV-005 toned subgraph titles have at least 4.5:1 contrast", async () => {
+  // @spec PLEX-INV-005
+  await eachTone(async (page, mode, n) => {
+    const box = await computed(page, `.pele-cluster[data-id="G${n}"] > rect`, ["fill"]);
+    const title = await computed(page, `.pele-cluster[data-id="G${n}"] > .pele-cluster-label`, ["fill"]);
+    assert.ok(title, `group ${n} has its title inside its group`);
+    atLeast(contrast(title.fill, box.fill), 4.5, `${mode} group ${n} title`);
+  });
+});
+
+test("PLEX-INV-006 toned outlines have at least 3:1 contrast with the background", async () => {
+  // @spec PLEX-INV-006
+  await eachTone(async (page, mode, n, c) => {
+    for (const selector of [`[data-id="T${n}"] > rect`, `[data-id="S${n}"] > rect`, `.pele-cluster[data-id="G${n}"] > rect`]) {
+      const { stroke } = await computed(page, selector, ["stroke"]);
+      atLeast(contrast(stroke, c["--pele-bg"]), 3, `${mode} ${selector}`);
+    }
+  });
 });

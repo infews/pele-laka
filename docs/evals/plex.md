@@ -7,6 +7,10 @@ business and are not pinned. Tests: `test/evals/plex.test.js`.
 ## Invariants
 - `PLEX-INV-001`: The README and the theme's comments shall never name the removed schemes paper, harbor or moss.
 - `PLEX-INV-002`: The README shall list every `--plex-edge-label-*` knob the theme defines, each with its default value.
+- `PLEX-INV-003`: In light and dark, the text of a `solid` node, with any tone or none, shall have at least 4.5:1 contrast against its fill.
+- `PLEX-INV-004`: In light and dark, the text of a node with `tone-N` shall have at least 4.5:1 contrast against its fill.
+- `PLEX-INV-005`: In light and dark, the title of a subgraph with `tone-N` shall have at least 4.5:1 contrast against the subgraph's fill.
+- `PLEX-INV-006`: In light and dark, the outline of every node and subgraph with `tone-N` shall have at least 3:1 contrast against the background.
 
 ## Contracts
 - `PLEX-CON-001`: The theme shall set pele's color variables to the carbon values in the table below, for light and for dark.
@@ -41,10 +45,9 @@ business and are not pinned. Tests: `test/evals/plex.test.js`.
 - `PLEX-E2E-004`: A node with `tone-N` shall be filled with series color N mixed at 18% into the surface color.
 - `PLEX-E2E-005`: A node with `tone-N` shall be outlined in series color N, with its text in the foreground color.
 - `PLEX-E2E-006`: A node with `tone-N` and `solid` shall be filled and outlined in series color N.
-- `PLEX-E2E-007`: A node with `solid` shall have its text in the background color.
 - `PLEX-E2E-008`: A node with `solid` and no tone shall be filled and outlined in the accent color.
 - `PLEX-E2E-009`: A subgraph with `tone-N` shall be filled, fully opaque, with series color N mixed at 9% into the background color.
-- `PLEX-E2E-010`: A subgraph with `tone-N` shall be outlined and titled in series color N.
+- `PLEX-E2E-010`: A subgraph with `tone-N` shall be outlined in series color N.
 - `PLEX-E2E-011`: A flowchart edge label shall be set in capitals, at 72% of the size pele laid it out at, tracked by 0.06em, at weight 500.
 - `PLEX-E2E-012`: A flowchart edge label's box shall be a full pill, scaled about its center by 1.06 wide and 1.0 tall.
 - `PLEX-E2E-013`: An edge label pele wraps onto two or more lines shall have its box scaled about its center by 1.14 wide and 1.18 tall.

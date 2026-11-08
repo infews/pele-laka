@@ -31,7 +31,7 @@ monitored_ids=$(find "$evals_dir" -name '*.md' -exec awk '
 # @spec tags anywhere outside docs/ and dependency folders.
 tagged=$(grep -rhoE "@spec[[:space:]]+$id" "$root" \
   --exclude-dir=.git --exclude-dir=docs --exclude-dir=node_modules --exclude-dir=vendor \
-  --exclude-dir=tmp --exclude-dir=.bundle 2>/dev/null | grep -oE "$id" | sort -u || true)
+  --exclude-dir=tmp --exclude-dir=.bundle --exclude-dir=.stryker-tmp --exclude-dir=reports 2>/dev/null | grep -oE "$id" | sort -u || true)
 
 covered=$(printf '%s\n%s\n' "$tagged" "$monitored_ids" | grep -v '^$' | sort -u || true)
 untested=$(comm -23 <(echo "$defined" | grep -v '^$') <(echo "$covered") || true)

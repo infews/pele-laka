@@ -46,6 +46,13 @@ Today these fail: solid text for tones 2 and 5 (light) and 1 and 3 (dark);
 subgraph titles for tones 2, 5 and 7 (light) and 1 and 3 (dark).
 
 ## EARS Specifications
+- `PLEX-INV-003`, `PLEX-INV-004`, `PLEX-INV-005`, `PLEX-INV-006` (new; contrast is the WCAG 2 ratio of the colors the browser resolves)
+- `PLEX-E2E-010` (changed: pins the outline only, not the title's color)
+- `PLEX-E2E-007` (retired: solid text is no longer always the background color)
+
+Approach (PM, 2026-11-08): keep carbon's colors (`PLEX-CON-001` unchanged) and
+choose the text: solid text is near-black or white, whichever reads better on
+the tone; subgraph titles are the tone mixed toward the foreground.
 
 ## Implementation Plan
 
