@@ -3,9 +3,34 @@
   "version": "0.1.0",
   "description": "Preview or export a Mermaid diagram rendered by pele, with your own CSS embedded in the SVG.",
   "type": "module",
-  "bin": { "pele-preview": "bin/pele-preview" },
-  "files": ["bin", "src"],
-  "engines": { "node": ">=20" },
-  "scripts": { "test": "node --test" },
-  "dependencies": { "pele": "^1.13.0" }
+  "bin": {
+    "pele-preview": "bin/pele-preview"
+  },
+  "files": [
+    "bin",
+    "src",
+    "pele-plex.css"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test",
+    "test:property": "node --test \"test/**/*.property.test.js\"",
+    "test:browser": "playwright test",
+    "mutate": "stryker run",
+    "check": "eslint . && npm audit --omit=dev",
+    "evals": "npm test && npm run test:browser && scripts/check-eval-links.sh"
+  },
+  "dependencies": {
+    "pele": "^1.13.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.65.0",
+    "@stryker-mutator/core": "^10.1.1",
+    "eslint": "^10.14.0",
+    "fast-check": "^4.10.2",
+    "globals": "^17.14.0"
+  }
 }

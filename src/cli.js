@@ -1,3 +1,4 @@
+// @subsystem Arguments
 import { parseArgs } from "node:util";
 import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";

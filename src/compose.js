@@ -1,3 +1,4 @@
+// @subsystem Compose
 import { readFileSync } from "node:fs";
 import { render, PeleError } from "pele";
 

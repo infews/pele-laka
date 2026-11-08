@@ -41,7 +41,8 @@ usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
   -h, --help           show this message
 ```
 
-Exit codes: `0` success, `1` render or I/O failure (export mode), `2` usage error.
+Exit codes: `0` success, `1` render or I/O failure, or the preview
+server could not start, `2` usage error.
 
 A render that fails in preview mode leaves the last good diagram on screen,
 greyed out, with the error above it. Fix the file and it recovers.
@@ -54,8 +55,9 @@ Your CSS travels **inside the SVG**, as a `<style>` element, so the exported fil
 looks the same everywhere it is opened. The preview page applies no styling of
 its own to the diagram beyond a background: what you see is what you ship. (The
 page otherwise styles only its own chrome, the error banner and the padding
-around the diagram.) The page is always light; it fills the diagram's area with `--pele-bg` (white unless your CSS
-sets it), so a dark theme in your stylesheet still reads in the preview. The
+around the diagram.) The page's own colors follow the scheme toggle (see Light
+and dark below), and it fills the diagram's area with `--pele-bg` (white unless
+your CSS sets it), so the diagram always sits on its own background. The
 exported SVG has no background of its own: set `--pele-bg` *and* paint it, e.g.
 `.pele { background: var(--pele-bg, #fff); }`, if the file needs one.
 
