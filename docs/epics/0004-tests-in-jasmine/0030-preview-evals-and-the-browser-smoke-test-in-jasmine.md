@@ -33,7 +33,17 @@ Feature: PREVIEW Evals and the Browser Smoke Test in Jasmine
 ```
 
 ## EARS Specifications
+No eval text changes. The tests of all 23 PREVIEW evals are rewritten in
+Jasmine, reviewed with the developer (2026-11-08). The browser smoke test moves
+from `e2e/page.spec.js` to `test/page.test.js`, as an internal test.
+
+Mutation testing `server.js`, `watcher.js`, `browser.js` and `main.js` at 4
+workers showed six mutants killed before and not after. Rerun one at a time on a
+quiet machine, the old tests let five of them survive too (timing specs failing
+under load), and the new specs catch the sixth (`server.js:58`). The new specs
+catch 12 of those 21 mutants to the old tests' 7.
 
 ## Implementation Plan
+- [x] Run `test/evals/preview.test.js` and the smoke test on Jasmine (tooling). Remove `playwright.config.js`, `npm run test:browser`, `@playwright/test` and Playwright's output folders from `.gitignore`. Merge ESLint's test globals into one block, and update `CLAUDE.md`. `test/evals/plex.test.js` imports `chromium` from `playwright` too, so it still loads; its move is story 0040.
 
 ## Issues

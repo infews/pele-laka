@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { chromium } from "@playwright/test";
+import { chromium } from "playwright";
 
 const bin = new URL("../../bin/pele-preview", import.meta.url).pathname;
 const THEME = readFileSync(new URL("../../pele-plex.css", import.meta.url), "utf8");
