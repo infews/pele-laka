@@ -29,7 +29,13 @@ Feature: EXPORT and CLI Evals in Jasmine
 ```
 
 ## EARS Specifications
+No eval text changes. The tests of all 19 EXPORT and 11 CLI evals are rewritten
+in Jasmine, reviewed with the developer (2026-11-08). Mutation testing `src/`
+against these two files kills all 75 mutants the `node --test` versions
+killed, and 140 in all. The baseline's 232 timeouts were CPU load: under light
+load the old tests let the same mutants survive.
 
 ## Implementation Plan
+- [x] Run `test/evals/export.test.js` and `test/evals/cli.test.js` on Jasmine (tooling): add them to `jasmine.json`, take them out of `npm test`'s `node --test` list, add `playwright` as a direct dev dependency for `chromium`, and update `CLAUDE.md`.
 
 ## Issues

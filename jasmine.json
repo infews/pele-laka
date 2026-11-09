@@ -1,7 +1,9 @@
 {
   "spec_dir": "test",
   "spec_files": [
-    "*.test.js"
+    "*.test.js",
+    "evals/export.test.js",
+    "evals/cli.test.js"
   ],
   "helpers": [
     "helpers/**/*.js"

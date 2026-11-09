@@ -15,7 +15,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "jasmine --config=jasmine.json && node --test \"test/evals/*.test.js\"",
+    "test": "jasmine --config=jasmine.json && node --test test/evals/preview.test.js test/evals/plex.test.js",
     "test:property": "jasmine --config=jasmine.json \"test/*.property.test.js\"",
     "test:browser": "playwright test",
     "mutate": "stryker run",
@@ -33,6 +33,7 @@
     "fast-check": "^4.10.2",
     "globals": "^17.14.0",
     "jasmine": "6.3.0",
-    "jasmine-spec-reporter": "7.0.0"
+    "jasmine-spec-reporter": "7.0.0",
+    "playwright": "^1.65.0"
   }
 }
