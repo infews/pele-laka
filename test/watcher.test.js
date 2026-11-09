@@ -1,6 +1,7 @@
 // Internal tests of part of the Preview subsystem. A redesign may rewrite or
 // delete them; the PREVIEW evals (test/evals/preview.test.js) must keep passing.
 import { test } from "node:test";
+import { EventEmitter } from "node:events";
 import assert from "node:assert/strict";
 import { mkdtempSync, writeFileSync, renameSync, unlinkSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -109,6 +110,71 @@ test("a rename-save produces one callback", async () => {
     renameSync(`${path}.tmp`, path);
     await sleep(400);
     assert.equal(calls, 1);
+  } finally {
+    watcher.close();
+  }
+});
+
+// A stand-in for fs.watch: records each watcher it makes, so a test can fire
+// events and errors on it and see whether it was closed.
+function fakeWatch() {
+  const made = [];
+  const watch = (path, listener) => {
+    const watcher = Object.assign(new EventEmitter(), { path, listener, closed: false });
+    watcher.close = () => { watcher.closed = true; };
+    made.push(watcher);
+    return watcher;
+  };
+  return { watch, made };
+}
+
+test("a watch error closes that watcher, watches the file again, and reports a change", async () => {
+  const { watch, made } = fakeWatch();
+  let calls = 0;
+  const watcher = watchFiles(["d.mmd"], () => calls++, { delay: 10, watch });
+  try {
+    made[0].emit("error", new Error("EPERM"));
+    assert.equal(made[0].closed, true, "the failed watcher is closed");
+    await sleep(60);
+    assert.equal(made.length, 2, "the file is watched again");
+    assert.equal(made[1].path, "d.mmd");
+    assert.equal(calls, 1, "the re-attach reports a change");
+
+    made[1].listener("change");
+    await sleep(60);
+    assert.equal(calls, 2, "the next save still fires");
+  } finally {
+    watcher.close();
+  }
+});
+
+test("close with a re-attach pending watches nothing afterwards", async () => {
+  const { watch, made } = fakeWatch();
+  let calls = 0;
+  const watcher = watchFiles(["d.mmd"], () => calls++, { delay: 30, watch });
+  made[0].listener("rename");
+  watcher.close();
+  await sleep(120);
+  assert.equal(made.length, 1, "no re-attach after close");
+  assert.equal(calls, 0);
+});
+
+test("close closes every watcher", () => {
+  const { watch, made } = fakeWatch();
+  watchFiles(["d.mmd", "s.css"], () => {}, { watch }).close();
+  assert.deepEqual(made.map((w) => w.closed), [true, true]);
+});
+
+test("a plain change keeps the same watcher", async () => {
+  const { watch, made } = fakeWatch();
+  let calls = 0;
+  const watcher = watchFiles(["d.mmd"], () => calls++, { delay: 10, watch });
+  try {
+    made[0].listener("change");
+    await sleep(60);
+    assert.equal(calls, 1);
+    assert.equal(made.length, 1, "no re-attach");
+    assert.equal(made[0].closed, false);
   } finally {
     watcher.close();
   }
