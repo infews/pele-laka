@@ -249,7 +249,6 @@ Every step is a knob you can set on `:root` (or any ancestor of the diagram):
 
 - **`solid` without a tone** falls back to the scheme's accent color.
 - **Moved subgraph titles keep the default color.** If a subgraph's title would cross an edge, Pele draws it outside the subgraph's group, so the tone class doesn't reach it.
-- **Tone 6 is weak in dark mode.** It is near-white, so a tone-6 subgraph barely tints.
 
 ---
 

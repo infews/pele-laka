@@ -165,7 +165,7 @@
    whichever reads better on that tone in each mode (at least 4.5:1). */
 .pele .tone-1 { --plex-tone: var(--pele-series-1); --plex-tone-on: var(--pele-fg-on-dark); }
 .pele .tone-2 { --plex-tone: var(--pele-series-2); --plex-tone-on: var(--pele-fg-on-light); }
-.pele .tone-3 { --plex-tone: var(--pele-series-3); --plex-tone-on: var(--pele-fg-on-dark); }
+.pele .tone-3 { --plex-tone: var(--pele-series-3); --plex-tone-on: light-dark(var(--pele-fg-on-light), var(--pele-fg-on-dark)); }
 .pele .tone-4 { --plex-tone: var(--pele-series-4); --plex-tone-on: light-dark(var(--pele-fg-on-dark), var(--pele-fg-on-light)); }
 .pele .tone-5 { --plex-tone: var(--pele-series-5); --plex-tone-on: var(--pele-fg-on-light); }
 .pele .tone-6 { --plex-tone: var(--pele-series-6); --plex-tone-on: light-dark(var(--pele-fg-on-dark), var(--pele-fg-on-light)); }
@@ -240,10 +240,10 @@
   --pele-error:       light-dark(#da1e28, #ff8389);
   --pele-series-1:    light-dark(#6929c4, #8a3ffc);
   --pele-series-2:    light-dark(#1192e8, #33b1ff);
-  --pele-series-3:    light-dark(#005d5d, #007d79);
+  --pele-series-3:    light-dark(#009d9a, #007d79);
   --pele-series-4:    light-dark(#9f1853, #ff7eb6);
   --pele-series-5:    light-dark(#fa4d56, #fa4d56);
-  --pele-series-6:    light-dark(#570408, #fff1f1);
+  --pele-series-6:    light-dark(#570408, #ffb3b8);
   --pele-series-7:    light-dark(#198038, #6fdc8c);
   --pele-series-8:    light-dark(#002d9c, #4589ff);
 }

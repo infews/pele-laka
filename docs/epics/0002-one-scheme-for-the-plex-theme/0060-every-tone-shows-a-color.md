@@ -36,6 +36,6 @@ Today tone 6 in dark mode is `#fff1f1`, with a chroma of about 0.02.
 - `PLEX-CON-001` (changed): `--pele-series-6` dark `#fff1f1` → `#ffb3b8` (Carbon red 30); `--pele-series-3` light `#005d5d` → `#009d9a` (Carbon teal 50), whose chroma of 0.074 also fails PLEX-INV-007.
 
 ## Implementation Plan
-- [ ] Swap in the new tone colors (PlexTheme; README). Set `--pele-series-3` light to `#009d9a` and `--pele-series-6` dark to `#ffb3b8`. Tone 3's solid text becomes `light-dark(var(--pele-fg-on-light), var(--pele-fg-on-dark))`, since white on the lighter teal is only 3.3:1. Tone 6's text already flips to near-black in dark. Drop the README's "Tone 6 is weak in dark mode" edge case. No mutation testing: CSS (PM decision).
+- [x] Swap in the new tone colors (PlexTheme; README). Set `--pele-series-3` light to `#009d9a` and `--pele-series-6` dark to `#ffb3b8`. Tone 3's solid text becomes `light-dark(var(--pele-fg-on-light), var(--pele-fg-on-dark))`, since white on the lighter teal is only 3.3:1. Tone 6's text already flips to near-black in dark. Drop the README's "Tone 6 is weak in dark mode" edge case. No mutation testing: CSS (PM decision).
 
 ## Issues
