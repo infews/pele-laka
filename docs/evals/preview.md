@@ -29,6 +29,8 @@ Tests: `test/evals/preview.test.js`.
 - `PREVIEW-E2E-013`: When the diagram renders again after a failure, the page shall drop the error and show the new diagram normally.
 - `PREVIEW-E2E-014`: When the user presses Ctrl-C, the system shall stop and exit 0.
 - `PREVIEW-E2E-015`: If the server can't start, then the system shall print `could not start server: <reason>` to stderr and exit 1.
+- `PREVIEW-E2E-016`: When a file is saved once, by writing it or by renaming a new file over it, the system shall render once.
+- `PREVIEW-E2E-017`: When the diagram is deleted and then created again, the page shall show the new render.
 
 ## Monitors
 - `PREVIEW-MON-001`: When a file is saved, the system shall show the new render on the page within 1 second.

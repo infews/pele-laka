@@ -25,6 +25,10 @@ survivors, including the re-attach after `close()` and an untested `fs.watch`
 error handler.
 
 ## EARS Specifications
+- `PREVIEW-E2E-016` (new): one save, by writing or by rename, renders once. Fails today: a rename-save renders twice.
+- `PREVIEW-E2E-017` (new): a diagram deleted and created again updates the page. Passes today.
+
+Stopping and watch errors can't be reached from the CLI (Ctrl-C ends the process; the OS can't be made to report a watch error), so internal watcher tests cover them (developer decision, 2026-11-08).
 
 ## Implementation Plan
 

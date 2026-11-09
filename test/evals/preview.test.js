@@ -4,7 +4,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, readFileSync, renameSync, readdirSync, existsSync, chmodSync } from "node:fs";
+import { mkdtempSync, writeFileSync, readFileSync, renameSync, unlinkSync, readdirSync, existsSync, chmodSync } from "node:fs";
 import { createServer, connect } from "node:net";
 import { networkInterfaces, tmpdir } from "node:os";
 import { join } from "node:path";
@@ -308,6 +308,38 @@ test("PREVIEW-E2E-010 each successful render after a save prints rendered (revis
     await sleep(300);
     writeFileSync(diagram, flow("Third"));
     await waitFor(() => /^rendered \(revision 3\)$/m.test(out.stdout), 3000, () => out.stdout);
+  });
+});
+
+test("PREVIEW-E2E-016 one save, by writing or by rename, renders once", async () => {
+  // @spec PREVIEW-E2E-016
+  const { diagram } = project();
+  await withPreview([diagram, "-n"], async ({ out }) => {
+    const renders = () => out.stdout.match(/^rendered \(revision \d+\)$/gm)?.length ?? 0;
+    writeFileSync(diagram, flow("Written"));
+    await waitFor(() => renders() >= 1, 3000, () => out.stdout);
+    await sleep(1000);
+    assert.equal(renders(), 1, `one write, one render: ${out.stdout}`);
+
+    writeFileSync(`${diagram}.tmp`, flow("Renamed"));
+    renameSync(`${diagram}.tmp`, diagram);
+    await waitFor(() => renders() >= 2, 3000, () => out.stdout);
+    await sleep(1000);
+    assert.equal(renders(), 2, `one rename-save, one render: ${out.stdout}`);
+  });
+});
+
+test("PREVIEW-E2E-017 a diagram deleted and created again updates the page", async () => {
+  // @spec PREVIEW-E2E-017
+  const { diagram } = project();
+  await withPreview([diagram, "-n"], async ({ url }) => {
+    const page = await open(url);
+    unlinkSync(diagram);
+    await sleep(500);
+    writeFileSync(diagram, flow("Back again"));
+    await showsLabel(page, "Back again");
+    await notReloaded(page);
+    await page.close();
   });
 });
 
