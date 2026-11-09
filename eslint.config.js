@@ -9,6 +9,10 @@ export default [
     languageOptions: { globals: { ...globals.node } },
   },
   {
+    files: ["test/**/*.js"],
+    languageOptions: { globals: { ...globals.node, ...globals.jasmine } },
+  },
+  {
     // Callbacks passed to Playwright's page.evaluate run in the browser.
     files: ["e2e/**/*.js", "test/evals/**/*.js"],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },

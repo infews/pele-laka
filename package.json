@@ -15,7 +15,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test",
+    "test": "jasmine --config=jasmine.json && node --test test/cli.test.js test/cli.property.test.js test/compose.test.js test/compose.property.test.js test/server.test.js test/main.test.js test/watcher.test.js \"test/evals/*.test.js\"",
     "test:property": "node --test \"test/**/*.property.test.js\"",
     "test:browser": "playwright test",
     "mutate": "stryker run",
@@ -31,6 +31,8 @@
     "@stryker-mutator/core": "^10.1.1",
     "eslint": "^10.14.0",
     "fast-check": "^4.10.2",
-    "globals": "^17.14.0"
+    "globals": "^17.14.0",
+    "jasmine": "6.3.0",
+    "jasmine-spec-reporter": "7.0.0"
   }
 }

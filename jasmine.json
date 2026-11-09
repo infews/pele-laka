@@ -1,0 +1,13 @@
+{
+  "spec_dir": "test",
+  "spec_files": [
+    "browser.test.js"
+  ],
+  "helpers": [
+    "helpers/**/*.js"
+  ],
+  "env": {
+    "random": true,
+    "stopSpecOnExpectationFailure": false
+  }
+}
