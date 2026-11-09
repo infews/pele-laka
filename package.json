@@ -15,8 +15,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "jasmine --config=jasmine.json && node --test test/watcher.test.js \"test/evals/*.test.js\"",
-    "test:property": "node --test \"test/**/*.property.test.js\"",
+    "test": "jasmine --config=jasmine.json && node --test \"test/evals/*.test.js\"",
+    "test:property": "jasmine --config=jasmine.json \"test/*.property.test.js\"",
     "test:browser": "playwright test",
     "mutate": "stryker run",
     "check": "eslint . && npm audit --omit=dev",

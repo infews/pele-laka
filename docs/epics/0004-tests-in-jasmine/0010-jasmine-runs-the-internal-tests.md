@@ -45,7 +45,14 @@ after: the Jasmine run must kill every mutant the `node --test` run killed.
 - [x] Move `test/cli.test.js` and `test/cli.property.test.js`.
 - [x] Move `test/compose.test.js` and `test/compose.property.test.js`.
 - [x] Move `test/server.test.js` and `test/main.test.js`.
-- [ ] Move `test/watcher.test.js`, then update `CLAUDE.md`'s commands (tests, property tests, scoped mutation). Rerun mutation testing on `src/` against the internal tests on Jasmine: it must kill every mutant the `node --test` baseline killed.
+- [x] Move `test/watcher.test.js`, then update `CLAUDE.md`'s commands (tests, property tests, scoped mutation). Rerun mutation testing on `src/` against the internal tests on Jasmine: it must kill every mutant the `node --test` baseline killed.
+
+  Result: 311 mutants. The Jasmine run catches all 255 the baseline caught,
+  after one added test. Under `node --test`, a no-op `server.close()`
+  (`src/server.js:58`) left the process hanging, and the timeout caught it.
+  Jasmine exits when its specs finish, so nothing noticed. The new spec "stops
+  serving on close" checks it directly, which makes 55 internal specs
+  instead of 54.
 
 No `src/` changes, so no task has a mutation-testing step of its own; the before-and-after run in the last task stands in for it.
 

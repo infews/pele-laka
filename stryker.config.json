@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@stryker-mutator/core/schema/stryker-schema.json",
   "testRunner": "command",
-  "commandRunner": { "command": "node --test" },
+  "commandRunner": { "command": "npm test" },
   "mutate": ["src/**/*.js"],
   "reporters": ["clear-text", "progress"],
   "coverageAnalysis": "off"

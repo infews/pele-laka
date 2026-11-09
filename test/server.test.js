@@ -78,6 +78,12 @@ describe("startServer", () => {
     });
   });
 
+  it("stops serving on close", async () => {
+    const server = await startServer({ port: 0, render: () => "<svg/>" });
+    await server.close();
+    await expectAsync(fetch(server.url)).toBeRejected();
+  });
+
   it("serves an empty diagram before any render succeeds", () =>
     withServer({ render: () => { throw new Error("broken"); } }, async (server) => {
       expect((await get(`${server.url}diagram.svg`)).body).toBe("");
