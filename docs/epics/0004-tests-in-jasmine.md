@@ -44,6 +44,6 @@ None.
 
 ## Resulting Stories
 - ~~[Jasmine runs the internal tests](0004-tests-in-jasmine/0010-jasmine-runs-the-internal-tests.md)~~
-- [EXPORT and CLI evals in Jasmine](0004-tests-in-jasmine/0020-export-and-cli-evals-in-jasmine.md)
+- ~~[EXPORT and CLI evals in Jasmine](0004-tests-in-jasmine/0020-export-and-cli-evals-in-jasmine.md)~~
 - [PREVIEW evals and the browser smoke test in Jasmine](0004-tests-in-jasmine/0030-preview-evals-and-the-browser-smoke-test-in-jasmine.md)
 - [PLEX evals in Jasmine; one runner](0004-tests-in-jasmine/0040-plex-evals-in-jasmine-one-runner.md)
