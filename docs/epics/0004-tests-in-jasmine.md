@@ -9,9 +9,10 @@ Today the tests use `node:test` with `node:assert`, plus one Playwright smoke
 test in `e2e/` on Playwright's own runner. The PM wants test source and test
 output that read better (2026-11-08).
 
-Stryker's Jasmine runner (`@stryker-mutator/jasmine-runner` 10.1.1) supports
-Jasmine below 7, so the epic uses Jasmine 6.3.0. It runs only the tests that
-cover each mutant. fast-check needs no adapter: `fc.assert` throws inside an
+The epic uses Jasmine 6.3.0, the newest that Stryker's Jasmine runner
+(`@stryker-mutator/jasmine-runner` 10.1.1) supports. That runner turned out not
+to see code in the child processes the eval specs start, so Stryker keeps its
+command runner and runs Jasmine as a command (PM decision, 2026-11-08). fast-check needs no adapter: `fc.assert` throws inside an
 `it`. Playwright's browser library works under any runner; only its own test
 runner goes.
 
@@ -24,7 +25,7 @@ against a deliberately broken build (PM decision, 2026-11-08).
 - Every `node:test` file and `e2e/page.spec.js`, moved to Jasmine 6.3.0.
 - `jasmine-spec-reporter` for named, nested output.
 - fast-check properties, kept as they are.
-- Stryker's Jasmine runner, and the commands in `CLAUDE.md`.
+- Stryker running Jasmine, and the commands in `CLAUDE.md`.
 ### Out of Scope
 - Changing what any eval says.
 - Adding or removing tests.
@@ -35,7 +36,7 @@ against a deliberately broken build (PM decision, 2026-11-08).
 - `npm test` runs every test through Jasmine and prints named specs.
 - No file imports `node:test` or `@playwright/test`.
 - `scripts/check-eval-links.sh` still reports 77 evals, all linked.
-- Scoped mutation testing runs on the Jasmine runner.
+- Scoped mutation testing runs the Jasmine specs, and eval specs still kill mutants.
 
 ## Dependencies
 None.

@@ -33,7 +33,8 @@ Feature: PLEX Evals in Jasmine; One Runner
 
   Scenario: Mutation testing on Jasmine
     When I run the scoped mutation command in CLAUDE.md
-    Then Stryker uses its Jasmine runner, running only the tests that cover each mutant
+    Then Stryker runs the Jasmine specs as a command
+    And the eval specs that drive the CLI still kill mutants
 ```
 
 ## EARS Specifications
@@ -43,5 +44,18 @@ hand-made breaks of `pele-plex.css` stand in for mutation testing: the old and
 new tests fail on every one, the same number of times.
 
 ## Implementation Plan
+- [x] Run `test/evals/plex.test.js` on Jasmine, and make `npm test` Jasmine alone (tooling).
+- [x] Point Stryker's command runner at Jasmine (`stryker.config.json`), and update `CLAUDE.md`.
 
 ## Issues
+- [x] **Stryker's Jasmine runner can't see the CLI.** It switches mutants on and
+  tracks coverage inside its own process, but the EXPORT, CLI and PREVIEW eval
+  specs (and most PLEX specs) run `bin/pele-preview` as a child process. On a
+  sample, the 6 `src/cli.js` mutants were killed through the internal tests,
+  and the 5 `src/main.js` mutants came back NoCoverage: `main.js` runs only in
+  the CLI process. The command runner (`npm test`) sees them, and the CLI evals
+  kill them. The scenario "Mutation testing on Jasmine" can't be met without
+  losing those kills. Which way? (raised 2026-11-08)
+  - **Answer (PM, 2026-11-08):** keep Stryker's command runner, running
+    Jasmine as a command, so every eval keeps counting. The scenario is
+    changed to say so.
