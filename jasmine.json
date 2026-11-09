@@ -3,7 +3,9 @@
   "spec_files": [
     "browser.test.js",
     "cli.test.js",
-    "cli.property.test.js"
+    "cli.property.test.js",
+    "compose.test.js",
+    "compose.property.test.js"
   ],
   "helpers": [
     "helpers/**/*.js"
