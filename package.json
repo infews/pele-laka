@@ -15,7 +15,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "jasmine --config=jasmine.json && node --test test/cli.test.js test/cli.property.test.js test/compose.test.js test/compose.property.test.js test/server.test.js test/main.test.js test/watcher.test.js \"test/evals/*.test.js\"",
+    "test": "jasmine --config=jasmine.json && node --test test/compose.test.js test/compose.property.test.js test/server.test.js test/main.test.js test/watcher.test.js \"test/evals/*.test.js\"",
     "test:property": "node --test \"test/**/*.property.test.js\"",
     "test:browser": "playwright test",
     "mutate": "stryker run",

@@ -1,13 +1,15 @@
 {
   "spec_dir": "test",
   "spec_files": [
-    "browser.test.js"
+    "browser.test.js",
+    "cli.test.js",
+    "cli.property.test.js"
   ],
   "helpers": [
     "helpers/**/*.js"
   ],
   "env": {
     "random": true,
-    "stopSpecOnExpectationFailure": false
+    "stopSpecOnExpectationFailure": true
   }
 }
