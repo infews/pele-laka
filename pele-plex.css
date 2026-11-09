@@ -9,7 +9,7 @@
  *
  * ── Light / dark ─────────────────────────────────────────────────────────────────────
  *   By default a diagram follows the OS setting, via @media (prefers-color-scheme: dark).
- *   pele-preview's --scheme light|dark (and its preview toggle) pin the mode by
+ *   pele-preview's --scheme light|dark pins the mode by
  *   rewriting that media query in the embedded copy of this file.
  *   Force a mode with data-pele-mode="light" | "dark" on the container or any ancestor,
  *   or from your own CSS:  html.dark { --plex-mode: dark; }
@@ -79,7 +79,6 @@
 
 [data-pele-mode="light"] { --plex-mode: light; }
 [data-pele-mode="dark"]  { --plex-mode: dark; }
-[data-pele-mode="auto"]  { --plex-mode: initial; }
 
 
 /* ─── Edges ──────────────────────────────────────────────────────────────────────── */
@@ -106,8 +105,7 @@
    with the rect sized to the text it measured. Uppercase + tracking widens text, so
    the text is shrunk to compensate and the rect is grown around its own center. */
 
-.pele .pele-edge-label text,
-.pele text.pele-edge-label {
+.pele .pele-edge-label text {
   text-transform: uppercase;
   letter-spacing: var(--plex-edge-label-tracking);
   font-size: calc(var(--plex-edge-label-scale) * 1em);
