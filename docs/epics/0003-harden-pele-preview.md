@@ -24,4 +24,4 @@ None.
 ## Open Questions
 
 ## Resulting Stories
-- [Harden the file watcher](0003-harden-pele-preview/0010-harden-the-file-watcher.md)
+- ~~[Harden the file watcher](0003-harden-pele-preview/0010-harden-the-file-watcher.md)~~
