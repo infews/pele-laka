@@ -5,7 +5,9 @@
     "cli.test.js",
     "cli.property.test.js",
     "compose.test.js",
-    "compose.property.test.js"
+    "compose.property.test.js",
+    "server.test.js",
+    "main.test.js"
   ],
   "helpers": [
     "helpers/**/*.js"

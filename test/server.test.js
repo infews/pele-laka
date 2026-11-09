@@ -1,100 +1,85 @@
 // Internal tests of part of the Preview subsystem. A redesign may rewrite or
 // delete them; the PREVIEW evals (test/evals/preview.test.js) must keep passing.
-import { test } from "node:test";
-import assert from "node:assert/strict";
 import { startServer } from "../src/server.js";
 
 const get = async (url) => {
   const res = await fetch(url);
   return { status: res.status, type: res.headers.get("content-type"), body: await res.text() };
 };
+const state = async (server) => JSON.parse((await get(`${server.url}state.json`)).body);
 
-
-test("serves page, diagram and state on loopback", async () => {
-  const server = await startServer({ port: 0, render: () => "<svg>one</svg>" });
+// Runs `body(server)` against a started server, always closing it.
+async function withServer(options, body) {
+  const server = await startServer({ port: 0, ...options });
   try {
-    assert.match(server.url, /^http:\/\/127\.0\.0\.1:\d+\/$/);
-    assert.deepEqual(server.initial, { revision: 1, error: null });
+    await body(server);
+  } finally {
+    await server.close();
+  }
+}
+
+describe("startServer", () => {
+  it("serves the page, diagram and state on loopback", () => withServer({ render: () => "<svg>one</svg>" }, async (server) => {
+    expect(server.url).toMatch(/^http:\/\/127\.0\.0\.1:\d+\/$/);
+    expect(server.initial).toEqual({ revision: 1, error: null });
 
     const page = await get(server.url);
-    assert.equal(page.status, 200);
-    assert.match(page.body, /EventSource\("\/events"\)/);
+    expect(page.status).toBe(200);
+    expect(page.body).toMatch(/EventSource\("\/events"\)/);
 
     const svg = await get(`${server.url}diagram.svg`);
-    assert.equal(svg.type, "image/svg+xml; charset=utf-8");
-    assert.equal(svg.body, "<svg>one</svg>");
+    expect(svg.type).toBe("image/svg+xml; charset=utf-8");
+    expect(svg.body).toBe("<svg>one</svg>");
 
-    assert.deepEqual(JSON.parse((await get(`${server.url}state.json`)).body), { revision: 1, error: null, scheme: "auto" });
-    assert.equal((await get(`${server.url}nope`)).status, 404);
-  } finally {
-    await server.close();
-  }
-});
+    expect(await state(server)).toEqual({ revision: 1, error: null, scheme: "auto" });
+    expect((await get(`${server.url}nope`)).status).toBe(404);
+  }));
 
-test("a failed render keeps the last good svg and reports the error", async () => {
-  let fail = false;
-  const server = await startServer({
-    port: 0,
-    render: () => { if (fail) throw new Error("boom"); return "<svg>good</svg>"; },
-    describe: (e) => `d.mmd: ${e.message}`,
+  it("keeps the last good svg after a failed render, and reports the error", async () => {
+    let fail = false;
+    const render = () => { if (fail) throw new Error("boom"); return "<svg>good</svg>"; };
+    await withServer({ render, describe: (e) => `d.mmd: ${e.message}` }, async (server) => {
+      fail = true;
+      const refreshed = server.refresh();
+      expect(refreshed.revision).toBe(2);
+      expect(refreshed.error).toBe("d.mmd: boom");
+      expect((await get(`${server.url}diagram.svg`)).body).toBe("<svg>good</svg>");
+      expect(await state(server)).toEqual({ revision: 2, error: "d.mmd: boom", scheme: "auto" });
+    });
   });
-  try {
-    fail = true;
-    const state = server.refresh();
-    assert.equal(state.revision, 2);
-    assert.equal(state.error, "d.mmd: boom");
-    assert.equal((await get(`${server.url}diagram.svg`)).body, "<svg>good</svg>");
-    assert.deepEqual(JSON.parse((await get(`${server.url}state.json`)).body), { revision: 2, error: "d.mmd: boom", scheme: "auto" });
-  } finally {
-    await server.close();
-  }
-});
 
-test("refresh pushes the new revision to event listeners", async () => {
-  let n = 0;
-  const server = await startServer({ port: 0, render: () => `<svg>${++n}</svg>` });
-  try {
-    const res = await fetch(`${server.url}events`);
-    assert.equal(res.headers.get("content-type"), "text/event-stream");
-    const reader = res.body.getReader();
-    const next = async () => new TextDecoder().decode((await reader.read()).value);
+  it("pushes each new revision to event listeners", async () => {
+    let n = 0;
+    await withServer({ render: () => `<svg>${++n}</svg>` }, async (server) => {
+      const res = await fetch(`${server.url}events`);
+      expect(res.headers.get("content-type")).toBe("text/event-stream");
+      const reader = res.body.getReader();
+      const next = async () => new TextDecoder().decode((await reader.read()).value);
 
-    assert.equal(await next(), "data: 1\n\n");
-    server.refresh();
-    assert.equal(await next(), "data: 2\n\n");
-    await reader.cancel();
-  } finally {
-    await server.close();
-  }
-});
+      expect(await next()).toBe("data: 1\n\n");
+      server.refresh();
+      expect(await next()).toBe("data: 2\n\n");
+      await reader.cancel();
+    });
+  });
 
-test("the diagram is the one svg render returns; state.json says which scheme the page shows", async () => {
-  const server = await startServer({ port: 0, scheme: "dark", render: () => "<svg>D</svg>" });
-  try {
-    assert.equal((await get(`${server.url}diagram.svg`)).body, "<svg>D</svg>");
-    assert.equal((await get(`${server.url}diagram.svg?scheme=light`)).body, "<svg>D</svg>");
-    assert.equal(JSON.parse((await get(`${server.url}state.json`)).body).scheme, "dark");
-  } finally {
-    await server.close();
-  }
-});
+  it("serves the one svg render returns, and says in state.json which scheme the page shows", () =>
+    withServer({ scheme: "dark", render: () => "<svg>D</svg>" }, async (server) => {
+      expect((await get(`${server.url}diagram.svg`)).body).toBe("<svg>D</svg>");
+      expect((await get(`${server.url}diagram.svg?scheme=light`)).body).toBe("<svg>D</svg>");
+      expect((await state(server)).scheme).toBe("dark");
+    }));
 
-test("without describe, a failed render reports the error's message", async () => {
-  let fail = false;
-  const server = await startServer({ port: 0, render: () => { if (fail) throw new Error("boom"); return "<svg/>"; } });
-  try {
-    fail = true;
-    assert.equal(server.refresh().error, "boom");
-  } finally {
-    await server.close();
-  }
-});
+  it("reports a failed render's message when there is no describe", async () => {
+    let fail = false;
+    await withServer({ render: () => { if (fail) throw new Error("boom"); return "<svg/>"; } }, async (server) => {
+      fail = true;
+      expect(server.refresh().error).toBe("boom");
+    });
+  });
 
-test("before any render succeeds, the diagram is empty", async () => {
-  const server = await startServer({ port: 0, render: () => { throw new Error("broken"); } });
-  try {
-    assert.equal((await get(`${server.url}diagram.svg`)).body, "");
-  } finally {
-    await server.close();
-  }
+  it("serves an empty diagram before any render succeeds", () =>
+    withServer({ render: () => { throw new Error("broken"); } }, async (server) => {
+      expect((await get(`${server.url}diagram.svg`)).body).toBe("");
+    }));
 });
