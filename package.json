@@ -15,7 +15,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "jasmine --config=jasmine.json && node --test test/evals/plex.test.js",
+    "test": "jasmine --config=jasmine.json",
     "test:property": "jasmine --config=jasmine.json \"test/*.property.test.js\"",
     "mutate": "stryker run",
     "check": "eslint . && npm audit --omit=dev",

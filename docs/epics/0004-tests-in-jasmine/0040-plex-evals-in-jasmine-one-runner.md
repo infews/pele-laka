@@ -37,6 +37,10 @@ Feature: PLEX Evals in Jasmine; One Runner
 ```
 
 ## EARS Specifications
+No eval text changes. The tests of all 24 PLEX evals are rewritten in Jasmine,
+reviewed with the developer (2026-11-08). Stryker doesn't mutate CSS, so ten
+hand-made breaks of `pele-plex.css` stand in for mutation testing: the old and
+new tests fail on every one, the same number of times.
 
 ## Implementation Plan
 
