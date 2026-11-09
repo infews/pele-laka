@@ -31,6 +31,9 @@ Feature: Distinct tones
 Today tone 6 in dark mode is `#fff1f1`, with a chroma of about 0.02.
 
 ## EARS Specifications
+- `PLEX-INV-007` (new): every series color has an OKLCH chroma of at least 0.08, light and dark.
+- `PLEX-INV-008` (new): every pair of series colors is at least 0.1 apart (ΔE OK). Passes today; it guards the new colors.
+- `PLEX-CON-001` (changed): `--pele-series-6` dark `#fff1f1` → `#ffb3b8` (Carbon red 30); `--pele-series-3` light `#005d5d` → `#009d9a` (Carbon teal 50), whose chroma of 0.074 also fails PLEX-INV-007.
 
 ## Implementation Plan
 

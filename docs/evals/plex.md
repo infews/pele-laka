@@ -10,6 +10,8 @@ business and are not pinned. Tests: `test/evals/plex.test.js`.
 - `PLEX-INV-004`: In light and dark, the text of a node with `tone-N` shall have at least 4.5:1 contrast against its fill.
 - `PLEX-INV-005`: In light and dark, the title of a subgraph with `tone-N` shall have at least 4.5:1 contrast against the subgraph's fill.
 - `PLEX-INV-006`: In light and dark, the outline of every node and subgraph with `tone-N` shall have at least 3:1 contrast against the background.
+- `PLEX-INV-007`: In light and dark, each of the series colors 1 to 8 shall have an OKLCH chroma of at least 0.08.
+- `PLEX-INV-008`: In light and dark, every pair of the series colors 1 to 8 shall be at least 0.1 apart in OKLCH (ΔE OK).
 
 ## Contracts
 - `PLEX-CON-001`: The theme shall set pele's color variables to the carbon values in the table below, for light and for dark.
@@ -30,10 +32,10 @@ business and are not pinned. Tests: `test/evals/plex.test.js`.
   | `--pele-error` | `#da1e28` | `#ff8389` |
   | `--pele-series-1` | `#6929c4` | `#8a3ffc` |
   | `--pele-series-2` | `#1192e8` | `#33b1ff` |
-  | `--pele-series-3` | `#005d5d` | `#007d79` |
+  | `--pele-series-3` | `#009d9a` | `#007d79` |
   | `--pele-series-4` | `#9f1853` | `#ff7eb6` |
   | `--pele-series-5` | `#fa4d56` | `#fa4d56` |
-  | `--pele-series-6` | `#570408` | `#fff1f1` |
+  | `--pele-series-6` | `#570408` | `#ffb3b8` |
   | `--pele-series-7` | `#198038` | `#6fdc8c` |
   | `--pele-series-8` | `#002d9c` | `#4589ff` |
 

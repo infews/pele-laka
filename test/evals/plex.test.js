@@ -442,3 +442,50 @@ test("PLEX-INV-006 toned outlines have at least 3:1 contrast with the background
     }
   });
 });
+
+// OKLab [L, a, b] of a computed color.
+function oklab(text) {
+  const [r, g, b] = rgb(text).map((c) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+  });
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  return [
+    0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s,
+  ];
+}
+
+// The series colors 1 to 8 as the exported diagram resolves them, per mode.
+async function eachModeSeries(check) {
+  const names = TONES.map((n) => `--pele-series-${n}`);
+  for (const mode of MODES) {
+    await inPage(exported(TONED, { scheme: mode }), mode, async (page) => {
+      const values = await resolveVariables(page, names);
+      await check(mode, names.map((name) => oklab(values[name])));
+    });
+  }
+}
+
+test("PLEX-INV-007 every series color has an OKLCH chroma of at least 0.08", async () => {
+  // @spec PLEX-INV-007
+  await eachModeSeries((mode, labs) => labs.forEach(([, a, b], i) => {
+    const chroma = Math.hypot(a, b);
+    assert.ok(chroma >= 0.08, `${mode} series ${i + 1}: chroma ${chroma.toFixed(3)}, needs 0.08`);
+  }));
+});
+
+test("PLEX-INV-008 every pair of series colors is at least 0.1 apart in OKLCH", async () => {
+  // @spec PLEX-INV-008
+  await eachModeSeries((mode, labs) => {
+    for (let i = 0; i < labs.length; i++) {
+      for (let j = i + 1; j < labs.length; j++) {
+        const distance = Math.hypot(...labs[i].map((v, k) => v - labs[j][k]));
+        assert.ok(distance >= 0.1, `${mode} series ${i + 1} and ${j + 1}: ΔE OK ${distance.toFixed(3)}, needs 0.1`);
+      }
+    }
+  });
+});
