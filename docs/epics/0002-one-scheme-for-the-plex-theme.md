@@ -62,10 +62,10 @@ The adoption epic, so the rest of the system is pinned before this work starts.
 ## Open Questions
 
 ## Resulting Stories
-- ~~[Characterize the Plex theme](0002-one-scheme-for-the-plex-theme/0010-characterize-the-plex-theme.md)~~
-- ~~[Only carbon](0002-one-scheme-for-the-plex-theme/0020-only-carbon.md)~~
-- ~~[No palettes in pele-preview](0002-one-scheme-for-the-plex-theme/0030-no-palettes-in-pele-preview.md)~~
-- ~~[Preview without a scheme toggle](0002-one-scheme-for-the-plex-theme/0035-preview-without-a-scheme-toggle.md)~~
-- ~~[The stylesheet decides the type](0002-one-scheme-for-the-plex-theme/0040-the-stylesheet-decides-the-type.md)~~
-- ~~[Readable text on tones](0002-one-scheme-for-the-plex-theme/0050-readable-text-on-tones.md)~~
-- ~~[Every tone shows a color](0002-one-scheme-for-the-plex-theme/0060-every-tone-shows-a-color.md)~~
+- [x] [Characterize the Plex theme](0002-one-scheme-for-the-plex-theme/0010-characterize-the-plex-theme.md)
+- [x] [Only carbon](0002-one-scheme-for-the-plex-theme/0020-only-carbon.md)
+- [x] [No palettes in pele-preview](0002-one-scheme-for-the-plex-theme/0030-no-palettes-in-pele-preview.md)
+- [x] [Preview without a scheme toggle](0002-one-scheme-for-the-plex-theme/0035-preview-without-a-scheme-toggle.md)
+- [x] [The stylesheet decides the type](0002-one-scheme-for-the-plex-theme/0040-the-stylesheet-decides-the-type.md)
+- [x] [Readable text on tones](0002-one-scheme-for-the-plex-theme/0050-readable-text-on-tones.md)
+- [x] [Every tone shows a color](0002-one-scheme-for-the-plex-theme/0060-every-tone-shows-a-color.md)

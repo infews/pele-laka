@@ -4,6 +4,10 @@ This project follows the Specs of Theseus method: the evals in `docs/evals/` are
 the spec, and work is planned in `docs/epics/`. Subsystems are marked in the code
 with `@subsystem` comments.
 
+In an epic's **Resulting Stories**, each story is a checkbox: `- [ ]` until the
+PM accepts it, then `- [x]`, like the tasks in a story. Don't strike stories
+through (PM decision, 2026-11-08).
+
 ## Tests
 
 Eval tests live in `test/evals/<area>.test.js`, tagged `@spec <ID>`, and drive
