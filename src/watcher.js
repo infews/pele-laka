@@ -24,7 +24,7 @@ export function watchFiles(paths, onChange, { delay = 100 } = {}) {
         changed();
         if (event === "rename") {
           watcher.close();
-          setTimeout(() => attach(path, true), delay);
+          setTimeout(() => attach(path), delay); // this event already reported the change
         }
       });
       watcher.on("error", () => {

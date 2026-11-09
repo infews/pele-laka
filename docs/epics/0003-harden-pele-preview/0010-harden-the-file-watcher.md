@@ -31,7 +31,7 @@ error handler.
 Stopping and watch errors can't be reached from the CLI (Ctrl-C ends the process; the OS can't be made to report a watch error), so internal watcher tests cover them (developer decision, 2026-11-08).
 
 ## Implementation Plan
-- [ ] A rename-save re-attaches without reporting a second change (Preview: `src/watcher.js`). The rename event already reported the change, so the re-attach after it passes `retry = false`. A deleted file still reports when it comes back, because that path goes through the failed-attach retry. Makes PREVIEW-E2E-016 pass.
+- [x] A rename-save re-attaches without reporting a second change (Preview: `src/watcher.js`). The rename event already reported the change, so the re-attach after it passes `retry = false`. A deleted file still reports when it comes back, because that path goes through the failed-attach retry. Makes PREVIEW-E2E-016 pass.
 - [ ] Regrow the watcher's stop and error paths (Preview: `src/watcher.js`). `watchFiles` takes a `watch` option, `fs.watch` by default, so tests can stand in a fake that emits `error`. First add internal tests: an error re-attaches and the next change still fires; `close()` with a re-attach pending watches nothing afterwards. Then fold the rename and error handlers into one `reattach(watcher, path, report)`. Drop the bookkeeping no test can notice: the `watchers.delete` in the error handler (closing an `FSWatcher` twice is harmless) and the `closed ||` guard (`close()` clears the timer). Scoped mutation testing on `src/watcher.js` must leave no survivors that aren't recorded as equivalent.
 
 ## Issues

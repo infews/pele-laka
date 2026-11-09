@@ -98,3 +98,18 @@ test("a deleted file that is later recreated triggers a callback", async () => {
     watcher.close();
   }
 });
+
+test("a rename-save produces one callback", async () => {
+  const path = tempFile();
+  let calls = 0;
+  const watcher = watchFiles([path], () => calls++, { delay: 50 });
+  try {
+    await sleep(50);
+    writeFileSync(`${path}.tmp`, "replaced");
+    renameSync(`${path}.tmp`, path);
+    await sleep(400);
+    assert.equal(calls, 1);
+  } finally {
+    watcher.close();
+  }
+});
