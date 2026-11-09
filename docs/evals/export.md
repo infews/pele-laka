@@ -27,6 +27,7 @@ self-contained SVG and exits. Tests: `test/evals/export.test.js`.
 - `EXPORT-E2E-008`: If pele rejects the diagram without a position, then the system shall print `DIAGRAM: MESSAGE` to stderr and exit 1.
 - `EXPORT-E2E-009`: If the render fails, then the system shall not create or change FILE.
 - `EXPORT-E2E-010`: If FILE can't be written, then the system shall print the error to stderr and exit 1.
-- `EXPORT-E2E-011`: Where the stylesheet sets `--pele-font`, the diagram's text shall use that family.
 
 ## Monitors
+
+<!-- Retired, never reuse: EXPORT-E2E-011 (fonts are the stylesheet's business; embedding is covered by EXPORT-E2E-001, PM 2026-11-08) -->

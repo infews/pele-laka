@@ -42,7 +42,6 @@ business and are not pinned. Tests: `test/evals/plex.test.js`.
 ## End-to-end
 - `PLEX-E2E-001`: Where `--scheme light` or `--scheme dark` is given, the diagram shall use that side of the theme whatever the viewer's setting.
 - `PLEX-E2E-002`: While `--scheme` is `auto`, the diagram shall follow the viewer's light or dark setting.
-- `PLEX-E2E-003`: Where the diagram is inside an element with `data-pele-mode="light"` or `"dark"`, it shall use that side of the theme whatever the viewer's setting.
 - `PLEX-E2E-004`: A node with `tone-N` shall be filled with series color N mixed at 18% into the surface color.
 - `PLEX-E2E-005`: A node with `tone-N` shall be outlined in series color N, with its text in the foreground color.
 - `PLEX-E2E-006`: A node with `tone-N` and `solid` shall be filled and outlined in series color N.
@@ -61,3 +60,4 @@ business and are not pinned. Tests: `test/evals/plex.test.js`.
 ## Monitors
 
 <!-- Retired, never reuse: PLEX-INV-001 (checks that removed features stay removed, PM 2026-11-08) -->
+<!-- Retired, never reuse: PLEX-E2E-003 (data-pele-mode removed from the theme, PM 2026-11-08) -->

@@ -151,16 +151,6 @@ test("PLEX-E2E-002 with --scheme auto the diagram follows the viewer", async () 
   }
 });
 
-test("PLEX-E2E-003 data-pele-mode on a container wins over the viewer's setting", async () => {
-  // @spec PLEX-E2E-003
-  const svg = exported(TONED);
-  for (const [mode, viewer] of [["dark", "light"], ["light", "dark"]]) {
-    await inPage(`<div data-pele-mode="${mode}">${svg}</div>`, viewer, async (page) => {
-      sameColor(await background(page), CARBON[mode]["--pele-bg"], `data-pele-mode=${mode} for a ${viewer} viewer`);
-    });
-  }
-});
-
 // Every tone in both modes, for the node, solid and subgraph evals.
 async function eachTone(check) {
   for (const mode of MODES) {

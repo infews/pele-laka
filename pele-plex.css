@@ -11,8 +11,6 @@
  *   By default a diagram follows the OS setting, via @media (prefers-color-scheme: dark).
  *   pele-preview's --scheme light|dark pins the mode by
  *   rewriting that media query in the embedded copy of this file.
- *   Force a mode with data-pele-mode="light" | "dark" on the container or any ancestor,
- *   or from your own CSS:  html.dark { --plex-mode: dark; }
  *   Switching never needs a re-render: every color is a light-dark() pair that the
  *   browser resolves against the diagram's color-scheme.
  *   Needs light-dark(): Chrome/Edge 123+, Safari 17.5+, Firefox 120+.
@@ -66,20 +64,15 @@
 
 /* Every diagram resolves its light-dark() colors against this. The OS setting is
    read through these two media queries, and nowhere else, so a tool can pin the
-   mode by rewriting them (pele-preview --scheme light|dark does exactly that).
-   --plex-mode, when set, wins over both. */
+   mode by rewriting them (pele-preview --scheme light|dark does exactly that). */
 .pele {
-  color-scheme: var(--plex-mode, light);
+  color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   .pele {
-    color-scheme: var(--plex-mode, dark);
+    color-scheme: dark;
   }
 }
-
-[data-pele-mode="light"] { --plex-mode: light; }
-[data-pele-mode="dark"]  { --plex-mode: dark; }
-
 
 /* ─── Edges ──────────────────────────────────────────────────────────────────────── */
 
