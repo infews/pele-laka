@@ -6,8 +6,9 @@ a page that re-renders whenever you save the diagram or the stylesheet. When you
 are happy, export the same thing as one self-contained SVG.
 
 ```sh
-pele-laka docs/architecture.mmd theme.css                  # live preview
-pele-laka docs/architecture.mmd theme.css -o diagram.svg   # export and exit
+pele-laka preview -c theme.css docs/architecture.mmd           # live preview
+pele-laka export -c theme.css docs/architecture.mmd            # writes docs/architecture.svg
+pele-laka export -c theme.css -o build docs/architecture.mmd   # writes build/architecture.svg
 ```
 
 pele is a pure-JavaScript renderer, so there is no headless browser, no `mmdc`
@@ -110,7 +111,7 @@ Write the dark side of your theme as `@media (prefers-color-scheme: dark)` (and,
 if you like, the light side as `prefers-color-scheme: light`). Then pick how the
 SVG uses it:
 
-| `--scheme` | Exported SVG (`-o`) and preview |
+| `--scheme` | Exported SVG and preview |
 |---|---|
 | `auto` (default) | carries both; follows the viewer's OS or browser setting |
 | `light` | always light, whatever the viewer's setting |
@@ -122,7 +123,7 @@ a condition that is always true (`(min-width: 0px)`) or never true
 (`(not (min-width: 0px))`), and the same for `light`. Your file on disk is never
 changed.
 
-The preview shows exactly the SVG that `-o` with the same `--scheme` would
+The preview shows exactly the SVG that `export` with the same `--scheme` would
 write, and the page around it takes the same scheme. With `auto`, change your
 browser's or OS's light/dark setting to see the other side; the preview switches
 without a reload. To preview a fixed side, restart with `--scheme light` or
@@ -152,7 +153,7 @@ built on IBM Carbon's neutrals and categorical palette, in light and dark. Use
 it as the stylesheet, or copy it as a starting point for your own:
 
 ```sh
-pele-laka diagram.mmd pele-plex.css
+pele-laka preview -c pele-plex.css diagram.mmd
 ```
 
 The eight series colors are available as classes named `tone-1` … `tone-8`. You don't need any `classDef`.
