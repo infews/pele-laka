@@ -32,7 +32,9 @@ function exported(mmd, { css = THEME, scheme = "auto" } = {}) {
     writeFileSync(join(dir, "s.css"), css);
     args.push("-c", join(dir, "s.css"));
   }
-  const result = spawnSync(process.execPath, [bin, ...args, join(dir, "d.mmd")], { encoding: "utf8" });
+  // No Chrome: these tests read the SVG, and drawing a PNG would only slow them.
+  const env = { ...process.env, CHROME_PATH: join(tmpdir(), "pele-laka-no-chrome", "chrome") };
+  const result = spawnSync(process.execPath, [bin, ...args, join(dir, "d.mmd")], { encoding: "utf8", env });
   expect(result.status).withContext(result.stderr).toBe(0);
   return readFileSync(join(dir, "d.svg"), "utf8");
 }

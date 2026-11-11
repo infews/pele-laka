@@ -1,7 +1,7 @@
 # Export
 
-Area `EXPORT`: `pele-laka export [-c STYLE] [-o DIR] DIAGRAM`, which writes one
-self-contained SVG and exits. NAME is the diagram's file name without its
+Area `EXPORT`: `pele-laka export [-c STYLE] [-o DIR] DIAGRAM`, which writes a
+self-contained SVG, then a PNG of it drawn by Google Chrome, and exits. NAME is the diagram's file name without its
 extension. Tests: `test/evals/export.test.js`.
 
 ## Invariants
@@ -16,22 +16,28 @@ extension. Tests: `test/evals/export.test.js`.
 - `EXPORT-CON-001`: The system shall write the stylesheet as the first child of the root `<svg>` element, in a `<style>` element holding a CDATA section.
 - `EXPORT-CON-002`: When pele renders a valid diagram, the system shall receive an SVG string that begins with its root `<svg>` element and contains no `<style>` element.
 - `EXPORT-CON-003`: When pele rejects a diagram with a syntax error, the system shall receive a `PeleError` carrying the error's line and column.
+- `EXPORT-CON-004`: The system shall run Chrome from `CHROME_PATH` when it is set, and otherwise from Google Chrome's standard install location (`/Applications/Google Chrome.app` on macOS, `google-chrome` on the PATH on Linux).
 
 ## End-to-end
 - `EXPORT-E2E-001`: When the user runs `pele-laka export -c STYLE DIAGRAM`, the system shall write `NAME.svg` next to DIAGRAM, holding pele's rendering of DIAGRAM with STYLE embedded.
-- `EXPORT-E2E-002`: When an export succeeds, the system shall print `wrote <path>` for the SVG to stdout and exit 0.
+- `EXPORT-E2E-002`: When an export succeeds, the system shall print `wrote <path>` for the SVG, then for the PNG, to stdout and exit 0.
 - `EXPORT-E2E-003`: When the user exports with no stylesheet, the system shall write exactly the SVG pele renders.
 - `EXPORT-E2E-004`: Where `--scheme dark` is given, the system shall write CSS in which every `prefers-color-scheme: dark` condition always holds and every `prefers-color-scheme: light` condition never does.
 - `EXPORT-E2E-005`: Where `--scheme light` is given, the system shall write CSS in which every `prefers-color-scheme: light` condition always holds and every `prefers-color-scheme: dark` condition never does.
 - `EXPORT-E2E-006`: Where `--scheme` is `auto` or absent, the system shall embed the stylesheet's text unchanged.
 - `EXPORT-E2E-007`: If the diagram has a syntax error, then the system shall print `DIAGRAM:LINE:COLUMN: MESSAGE` to stderr and exit 1.
 - `EXPORT-E2E-008`: If pele rejects the diagram without a position, then the system shall print `DIAGRAM: MESSAGE` to stderr and exit 1.
-- `EXPORT-E2E-009`: If the render fails, then the system shall not create or change the SVG.
-- `EXPORT-E2E-010`: If the SVG can't be written, then the system shall print the error to stderr and exit 1.
-- `EXPORT-E2E-012`: Where `-o DIR` is given, the system shall write `NAME.svg` in DIR instead.
+- `EXPORT-E2E-009`: If the render fails, then the system shall not create or change the SVG or the PNG.
+- `EXPORT-E2E-010`: If the SVG can't be written, then the system shall print the error to stderr, write no PNG, and exit 1.
+- `EXPORT-E2E-012`: Where `-o DIR` is given, the system shall write `NAME.svg` and `NAME.png` in DIR instead.
 - `EXPORT-E2E-013`: If DIR isn't an existing directory, then the system shall print `no such directory: <DIR>` to stderr and exit 2.
-- `EXPORT-E2E-014`: When `NAME.svg` already exists, the system shall replace it.
-- `EXPORT-E2E-015`: If the SVG's path is the diagram's or the stylesheet's, then the system shall print `would overwrite <path>` to stderr and exit 2.
+- `EXPORT-E2E-014`: When `NAME.svg` or `NAME.png` already exists, the system shall replace it.
+- `EXPORT-E2E-015`: If the SVG's or the PNG's path is the diagram's or the stylesheet's, then the system shall print `would overwrite <path>` to stderr and exit 2.
+- `EXPORT-E2E-016`: After writing the SVG, the system shall write `NAME.png` beside it: the SVG drawn by Chrome at twice its width and height.
+- `EXPORT-E2E-017`: The system shall leave the PNG transparent wherever the SVG draws nothing.
+- `EXPORT-E2E-018`: Where `--scheme dark` is given, the system shall draw the PNG dark; with `light`, `auto` or no `--scheme`, it shall draw it light.
+- `EXPORT-E2E-019`: If Chrome isn't found, then the system shall write the SVG, print `skipped <path>: PNG export needs Google Chrome` for the PNG to stderr, write no PNG, and exit 0.
+- `EXPORT-E2E-020`: If Chrome fails while drawing the PNG, then the system shall keep the SVG, leave any existing `NAME.png` unchanged, print `<path>: MESSAGE` for the PNG to stderr, where MESSAGE includes what Chrome reported, and exit 1.
 
 ## Monitors
 

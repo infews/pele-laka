@@ -13,14 +13,14 @@ const stylesheet = fixture("theme.css");
 const tempDir = () => mkdtempSync(join(tmpdir(), "pele-laka-eval-"));
 
 // A PATH whose open and xdg-open do nothing, so a run that wrongly starts a
-// preview can't open a real browser.
+// preview can't open a real browser, and no Chrome, so exports write only the SVG.
 const quietEnv = (() => {
   const dir = tempDir();
   for (const name of ["open", "xdg-open"]) {
     writeFileSync(join(dir, name), "#!/bin/sh\nexit 0\n");
     chmodSync(join(dir, name), 0o755);
   }
-  return { ...process.env, PATH: `${dir}:${process.env.PATH}` };
+  return { ...process.env, PATH: `${dir}:${process.env.PATH}`, CHROME_PATH: join(dir, "no-chrome") };
 })();
 
 // A server that started would keep running, so give up after a few seconds.

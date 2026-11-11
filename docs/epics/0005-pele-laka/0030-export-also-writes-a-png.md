@@ -49,6 +49,15 @@ Feature: PNG export
 ```
 
 ## EARS Specifications
+- `EXPORT-CON-004` (new): Chrome runs from `CHROME_PATH` when set, otherwise from its standard install location.
+- `EXPORT-E2E-016` (new): after the SVG, `NAME.png` beside it, drawn by Chrome at 2x.
+- `EXPORT-E2E-017` (new): the PNG is transparent wherever the SVG draws nothing.
+- `EXPORT-E2E-018` (new): `--scheme dark` draws the PNG dark; `light`, `auto` or none draws it light.
+- `EXPORT-E2E-019` (new): no Chrome writes the SVG, prints `skipped <path>: PNG export needs Google Chrome`, exit 0.
+- `EXPORT-E2E-020` (new): Chrome failing keeps the SVG, leaves an existing PNG unchanged, prints `<path>: MESSAGE` with Chrome's own error in it, exit 1.
+- `EXPORT-E2E-002`, `-009`, `-010`, `-012`, `-014`, `-015` (changed): `wrote` for the SVG then the PNG; render and SVG-write failures write no PNG; `-o DIR`, replacing and `would overwrite` cover the PNG too.
+
+Eval tests that only check the SVG run with `CHROME_PATH` pointing at a missing file, so they stay fast and don't need Chrome; what they check is unchanged.
 
 ## Implementation Plan
 

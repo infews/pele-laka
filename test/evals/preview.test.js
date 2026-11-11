@@ -204,7 +204,8 @@ describe("PREVIEW", () => {
       for (const scheme of ["auto", "light", "dark"]) {
         const out = join(dir, scheme);
         mkdirSync(out);
-        const exported = spawnSync(process.execPath, [bin, "export", "-c", stylesheet, "--scheme", scheme, "-o", out, diagram]);
+        const noChrome = { ...process.env, CHROME_PATH: join(tmpdir(), "pele-laka-no-chrome", "chrome") }; // the SVG is enough
+        const exported = spawnSync(process.execPath, [bin, "export", "-c", stylesheet, "--scheme", scheme, "-o", out, diagram], { env: noChrome });
         expect(exported.status).toBe(0);
         const svg = readFileSync(join(out, "d.svg"), "utf8");
         await withPreview(["preview", "-c", stylesheet, "-n", "--scheme", scheme, diagram], async ({ url }) => {
