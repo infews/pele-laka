@@ -73,5 +73,21 @@ Render errors, missing files and unwritable output behave as they do today.
 Every other eval test that runs the CLI now uses the subcommands, `-c` and `-o DIR`; their eval text is unchanged. `CLI-INV-001`/`-002`'s generator adds unknown commands, the other command's options and a missing `-o` directory.
 
 ## Implementation Plan
+Smallest change: in `parse`, take the first argument as the command, drop the
+stylesheet positional, and add the export path checks; `main.js` switches on
+the command instead of `-o`.
+
+Regrow the Arguments subsystem (`src/cli.js`) around the commands: one option
+table per command (shared `-c`, `--scheme`, `-h`; preview adds `-p`, `-n`,
+`-B`; export adds `-o`), so `parseArgs` rejects the other command's options by
+itself, and `parse` returns `{ command, diagram, stylesheet, scheme, ... }` with
+only that command's fields. Export's fields are the resolved `svg` path, so the
+Export subsystem only writes it. Story 0030 adds the PNG path next to it. Its
+internal tests (`test/cli.test.js`, `test/cli.property.test.js`) are rewritten
+with it.
+
+- [ ] Commands and their options (Arguments: `src/cli.js`; Export and Preview: `src/main.js`). `-h`/`--help` first, or anywhere after a command, prints usage; no arguments is usage; another first argument is `unknown command: <arg>` then usage. One option table per command, `-c`/`--css` only. Export writes `NAME.svg` next to the diagram (`options.svg`, replacing `options.output`). The new usage text goes in `USAGE` and the README's usage block. Makes the CLI evals, PREVIEW and PLEX evals, and EXPORT-E2E-001..010 and -014 pass.
+- [ ] Export's destination (Arguments: `src/cli.js`). `-o DIR` puts `NAME.svg` in DIR; a DIR that isn't an existing directory is `no such directory: <DIR>`; an SVG path equal to the diagram's or the stylesheet's is `would overwrite <path>`. All usage errors, so exit 2 before anything is written. Makes EXPORT-E2E-012, -013 and -015 pass.
+- [ ] The README speaks in commands (docs only). Examples at the top, the `--scheme` table and the preview paragraph say `export` instead of `-o`; the Plex example uses `preview -c pele-plex.css`. No eval changes; CLI-INV-003 already pins the usage block.
 
 ## Issues
