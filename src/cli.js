@@ -52,9 +52,12 @@ const COMMANDS = {
     },
     read: (values, diagram, stylesheet) => {
       const dir = values.output === undefined ? dirname(diagram) : directory(values.output);
-      const svg = join(dir, `${basename(diagram, extname(diagram))}.svg`);
-      if (svg === diagram || svg === stylesheet) throw new UsageError(`would overwrite ${svg}`);
-      return { svg };
+      const name = join(dir, basename(diagram, extname(diagram)));
+      const files = { svg: `${name}.svg`, png: `${name}.png` };
+      for (const path of Object.values(files)) {
+        if (path === diagram || path === stylesheet) throw new UsageError(`would overwrite ${path}`);
+      }
+      return files;
     },
   },
 };

@@ -16,10 +16,10 @@ describe("parse", () => {
     });
   });
 
-  it("gives export its defaults: NAME.svg next to the diagram", () => {
+  it("gives export its defaults: NAME.svg and NAME.png next to the diagram", () => {
     expect(parse(["export", flow])).toEqual({
       command: "export", diagram: flow, stylesheet: null, scheme: "auto",
-      svg: join(dirname(flow), "flow.svg"),
+      svg: join(dirname(flow), "flow.svg"), png: join(dirname(flow), "flow.png"),
     });
   });
 
@@ -57,8 +57,9 @@ describe("parse", () => {
     }
   });
 
-  it("puts NAME.svg in the -o directory, resolved", () => {
+  it("puts NAME.svg and NAME.png in the -o directory, resolved", () => {
     expect(parse(["export", "-o", "test", flow]).svg).toBe(join(process.cwd(), "test", "flow.svg"));
+    expect(parse(["export", "-o", "test", flow]).png).toBe(join(process.cwd(), "test", "flow.png"));
     expect(parse(["export", "--output", tmpdir(), flow]).svg).toBe(join(tmpdir(), "flow.svg"));
   });
 
@@ -66,6 +67,14 @@ describe("parse", () => {
     it("names a -o that isn't a directory", () => {
       expect(() => parse(["export", "-o", "nope", flow])).toThrowError(UsageError, "no such directory: nope");
       expect(() => parse(["export", "-o", css, flow])).toThrowError(UsageError, `no such directory: ${css}`);
+    });
+
+    it("won't put the PNG over the diagram or the stylesheet", () => {
+      const dir = mkdtempSync(join(tmpdir(), "pele-laka-"));
+      for (const name of ["d.png", "e.mmd", "e.png"]) writeFileSync(join(dir, name), "");
+      expect(() => parse(["export", join(dir, "d.png")])).toThrowError(UsageError, `would overwrite ${join(dir, "d.png")}`);
+      expect(() => parse(["export", "-c", join(dir, "e.png"), join(dir, "e.mmd")])).toThrowError(UsageError, `would overwrite ${join(dir, "e.png")}`);
+      expect(() => parse(["export", "-c", join(dir, "e.png"), "-o", dir, flow])).not.toThrow();
     });
 
     it("won't put the SVG over the diagram or the stylesheet", () => {
