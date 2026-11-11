@@ -78,7 +78,7 @@ only Chrome. Two choices keep the PNG predictable:
 `playwright-core` becomes a shipped dependency, pinned to the version the
 tests' `playwright` already uses.
 
-- [ ] Extract Export (Export: `src/main.js` → `src/export.js`, marker moves). No behavior change; `main.js` only dispatches. Every eval that passes now still passes.
+- [x] Extract Export (Export: `src/main.js` → `src/export.js`, marker moves). No behavior change; `main.js` only dispatches. Every eval that passes now still passes.
 - [ ] The PNG's path (Arguments: `src/cli.js`). Export's options gain `png`, `NAME.png` beside `svg`; a `png` equal to the diagram or the stylesheet is `would overwrite <path>`. Makes EXPORT-E2E-015 pass.
 - [ ] Find Chrome, or skip the PNG (PNG: `src/png.js`, new; Export). `CHROME_PATH` when set, else `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` on macOS or `google-chrome` on the PATH on Linux. Not found: `skipped <png>: PNG export needs Google Chrome`, exit 0. Makes EXPORT-E2E-019 pass.
 - [ ] Draw the PNG (PNG, Export; `package.json` gains `playwright-core`). Launch Chrome from the found path, light color scheme, device scale 2, transparent background; screenshot the root `<svg>`; write `NAME.png` and print `wrote <png>` after the SVG. A failure prints `<png>: MESSAGE` with Chrome's error and exits 1. Makes EXPORT-CON-004, -E2E-002, -012, -014, -016, -017, -018 and -020 pass.

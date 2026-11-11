@@ -2,6 +2,9 @@
 // A redesign may rewrite or delete them.
 import { spawn, spawnSync } from "node:child_process";
 import { createServer } from "node:net";
+import { mkdtempSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 const bin = new URL("../bin/pele-laka", import.meta.url).pathname;
 const flow = new URL("./fixtures/flow.mmd", import.meta.url).pathname;
@@ -30,5 +33,14 @@ describe("pele-laka's stderr", () => {
     } finally {
       busy.close();
     }
+  });
+});
+
+describe("pele-laka export's stdout", () => {
+  it("begins with wrote <svg>", () => {
+    const out = mkdtempSync(join(tmpdir(), "pele-laka-main-"));
+    const env = { ...process.env, CHROME_PATH: join(out, "no-chrome") };
+    const result = spawnSync(process.execPath, [bin, "export", "-o", out, flow], { encoding: "utf8", env });
+    expect(result.stdout.split("\n")[0]).toBe(`wrote ${join(out, "flow.svg")}`);
   });
 });

@@ -1,7 +1,7 @@
 // The pele-laka command: parses the arguments, then exports or previews.
-import { writeFileSync } from "node:fs";
 import { parse, UsageError, HelpRequested } from "./cli.js";
 import { readAndCompose, describeError } from "./compose.js";
+import { exportFiles } from "./export.js";
 import { startServer } from "./server.js";
 import { watchFiles } from "./watcher.js";
 import { launch } from "./browser.js";
@@ -10,7 +10,7 @@ const options = parseOrExit(process.argv.slice(2));
 const describe = (error) => describeError(error, options.diagram);
 
 if (options.command === "export") {
-  exportSvg();
+  process.exitCode = await exportFiles(options);
 } else {
   await preview();
 }
@@ -28,17 +28,6 @@ function parseOrExit(argv) {
       process.exit(2);
     }
     throw error;
-  }
-}
-
-// @subsystem Export
-function exportSvg() {
-  try {
-    writeFileSync(options.svg, readAndCompose(options));
-    console.log(`wrote ${options.svg}`);
-  } catch (error) {
-    console.error(describe(error));
-    process.exit(1);
   }
 }
 
@@ -64,12 +53,14 @@ async function preview() {
   const files = [options.diagram, options.stylesheet].filter(Boolean);
   const watcher = watchFiles(files, () => report(server.refresh()));
 
-  console.log(`pele-laka: ${server.url}  (Ctrl-C to stop)`);
-  if (options.open) launch(server.url, { app: options.browserApp });
-
+  // Listen for Ctrl-C before printing the URL: whoever reads the URL may stop
+  // the preview at once.
   process.once("SIGINT", async () => {
     watcher.close();
     await server.close();
     process.exit(0);
   });
+
+  console.log(`pele-laka: ${server.url}  (Ctrl-C to stop)`);
+  if (options.open) launch(server.url, { app: options.browserApp });
 }
