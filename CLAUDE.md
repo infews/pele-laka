@@ -22,7 +22,9 @@ nothing needs to guard it (PM decision, 2026-11-08).
 ## Commands
 
 Node 20 or newer. Run `npm install` and `npx playwright install chromium` once:
-some eval tests in `npm test` drive Chromium too.
+some eval tests in `npm test` drive Chromium too. The PNG export evals also need
+Google Chrome installed (or `CHROME_PATH` pointing at one); the other export
+tests run without it.
 
 | Step | Command |
 |---|---|

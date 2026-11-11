@@ -21,7 +21,7 @@ preview:
   -n, --no-open        don't open a browser, just print the URL
   -B, --browser APP    open in a specific app (macOS only), e.g. "Google Chrome"
 
-export:
+export (writes NAME.svg, then NAME.png; the PNG needs Google Chrome):
   -o, --output DIR     write into DIR instead of next to the diagram`;
 
 const SHARED = {

@@ -3,20 +3,25 @@
 Live browser preview of a [Mermaid](https://mermaid.js.org) diagram, rendered by
 [pele](https://pele.run), with your own CSS. Point it at a `.mmd` file and it opens
 a page that re-renders whenever you save the diagram or the stylesheet. When you
-are happy, export the same thing as one self-contained SVG.
+are happy, export the same thing as one self-contained SVG, and a PNG of it.
 
 ```sh
 pele-laka preview -c theme.css docs/architecture.mmd           # live preview
-pele-laka export -c theme.css docs/architecture.mmd            # writes docs/architecture.svg
-pele-laka export -c theme.css -o build docs/architecture.mmd   # writes build/architecture.svg
+pele-laka export -c theme.css docs/architecture.mmd            # writes docs/architecture.svg and .png
+pele-laka export -c theme.css -o build docs/architecture.mmd   # writes build/architecture.svg and .png
 ```
 
-pele is a pure-JavaScript renderer, so there is no headless browser, no `mmdc`
-and no puppeteer config to wrangle.
+pele is a pure-JavaScript renderer, so the SVG and the preview need no headless
+browser, no `mmdc` and no puppeteer config to wrangle. Only the PNG needs a
+browser: it is the SVG drawn by your installed Google Chrome, at twice its size,
+on a transparent background.
 
 ## Requirements and install
 
-Node 20 or newer. That is all.
+Node 20 or newer. For the PNG, Google Chrome, in its usual place
+(`/Applications` on macOS, `google-chrome` on the PATH on Linux); set
+`CHROME_PATH` to use one somewhere else. Without Chrome, `export` writes the SVG,
+says it skipped the PNG, and still succeeds.
 
 ```sh
 npm install && npm link      # or: npm i -g .
@@ -39,7 +44,7 @@ preview:
   -n, --no-open        don't open a browser, just print the URL
   -B, --browser APP    open in a specific app (macOS only), e.g. "Google Chrome"
 
-export:
+export (writes NAME.svg, then NAME.png; the PNG needs Google Chrome):
   -o, --output DIR     write into DIR instead of next to the diagram
 ```
 
@@ -116,6 +121,8 @@ SVG uses it:
 | `auto` (default) | carries both; follows the viewer's OS or browser setting |
 | `light` | always light, whatever the viewer's setting |
 | `dark` | always dark, whatever the viewer's setting |
+
+A PNG can't follow the viewer, so it is drawn dark for `dark` and light otherwise.
 
 A web page cannot force `prefers-color-scheme`, so `light` and `dark` work by
 rewriting your CSS as it is embedded: each `(prefers-color-scheme: dark)` becomes
