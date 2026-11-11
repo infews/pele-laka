@@ -9,7 +9,7 @@ import { launch } from "./browser.js";
 const options = parseOrExit(process.argv.slice(2));
 const describe = (error) => describeError(error, options.diagram);
 
-if (options.output) {
+if (options.command === "export") {
   exportSvg();
 } else {
   await preview();
@@ -34,8 +34,8 @@ function parseOrExit(argv) {
 // @subsystem Export
 function exportSvg() {
   try {
-    writeFileSync(options.output, readAndCompose(options));
-    console.log(`wrote ${options.output}`);
+    writeFileSync(options.svg, readAndCompose(options));
+    console.log(`wrote ${options.svg}`);
   } catch (error) {
     console.error(describe(error));
     process.exit(1);

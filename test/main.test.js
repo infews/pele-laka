@@ -8,7 +8,7 @@ const flow = new URL("./fixtures/flow.mmd", import.meta.url).pathname;
 
 describe("pele-laka's stderr", () => {
   it("stays empty for a preview that starts cleanly", async () => {
-    const child = spawn(process.execPath, [bin, flow, "-n"]);
+    const child = spawn(process.execPath, [bin, "preview", flow, "-n"]);
     let stdout = "";
     let stderr = "";
     child.stdout.on("data", (chunk) => { stdout += chunk; });
@@ -24,7 +24,7 @@ describe("pele-laka's stderr", () => {
     const busy = createServer();
     await new Promise((resolve) => busy.listen(0, "127.0.0.1", resolve));
     try {
-      const result = spawnSync(process.execPath, [bin, flow, "-n", "-p", String(busy.address().port)], { encoding: "utf8", timeout: 5000 });
+      const result = spawnSync(process.execPath, [bin, "preview", flow, "-n", "-p", String(busy.address().port)], { encoding: "utf8", timeout: 5000 });
       expect(result.status).toBe(1);
       expect(result.stderr).toMatch(/^could not start server: [^\n]*\n$/);
     } finally {

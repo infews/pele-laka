@@ -14,17 +14,17 @@ const notWholeNumber = fc.tuple(fc.stringMatching(/^\d{0,3}$/), fc.string({ minL
 describe("-p", () => {
   it("accepts exactly the whole numbers 0 to 65535", () => {
     fc.assert(fc.property(fc.integer({ min: 0, max: 65535 }), (n) => {
-      expect(parse([flow, "-p", String(n)]).port).toBe(n);
+      expect(parse(["preview", flow, "-p", String(n)]).port).toBe(n);
     }));
     fc.assert(fc.property(fc.integer({ min: 65536, max: 10 ** 9 }), (n) => {
-      expect(() => parse([flow, "-p", String(n)])).toThrowError(UsageError, `--port must be between 0 and 65535, got: ${n}`);
+      expect(() => parse(["preview", flow, "-p", String(n)])).toThrowError(UsageError, `--port must be between 0 and 65535, got: ${n}`);
     }));
   });
 
   it("rejects anything but digits as not a whole number", () => {
     fc.assert(fc.property(notWholeNumber, (text) => {
-      expect(() => parse([flow, "-p", text])).toThrowError(UsageError, `--port must be a whole number, got: ${text}`);
+      expect(() => parse(["preview", flow, "-p", text])).toThrowError(UsageError, `--port must be a whole number, got: ${text}`);
     }));
-    for (const text of ["1a", "a1", "1.5", " 1", "1 "]) expect(() => parse([flow, "-p", text])).withContext(text).toThrowError(UsageError);
+    for (const text of ["1a", "a1", "1.5", " 1", "1 "]) expect(() => parse(["preview", flow, "-p", text])).withContext(text).toThrowError(UsageError);
   });
 });

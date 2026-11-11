@@ -24,17 +24,22 @@ npm install && npm link      # or: npm i -g .
 ## Usage
 
 ```
-usage: pele-laka DIAGRAM.mmd [STYLE.css] [options]
+usage: pele-laka preview [options] DIAGRAM.mmd
+       pele-laka export [options] DIAGRAM.mmd
 
-  -o, --output FILE    write a self-contained SVG to FILE and exit (no server)
-  -c, --css FILE       stylesheet (same as the second positional argument)
-  -p, --port N         port to serve on (default: ephemeral)
-  -n, --no-open        don't open a browser, just print the URL
-  -B, --browser APP    open in a specific app (macOS only), e.g. "Google Chrome"
+  -c, --css FILE       stylesheet to embed
       --scheme MODE    auto | light | dark (default: auto). light or dark
                        fixes the SVG, and the preview, to that scheme; auto
                        follows the viewer.
   -h, --help           show this message
+
+preview:
+  -p, --port N         port to serve on (default: ephemeral)
+  -n, --no-open        don't open a browser, just print the URL
+  -B, --browser APP    open in a specific app (macOS only), e.g. "Google Chrome"
+
+export:
+  -o, --output DIR     write into DIR instead of next to the diagram
 ```
 
 Exit codes: `0` success, `1` render or I/O failure, or the preview

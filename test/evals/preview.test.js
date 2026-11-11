@@ -422,7 +422,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-014 Ctrl-C stops the preview with exit 0", async () => {
       // @spec PREVIEW-E2E-014
       const { diagram } = project();
-      const p = await preview([diagram, "-n"]);
+      const p = await preview(["preview", diagram, "-n"]);
       expect(await p.stop()).toEqual({ code: 0, signal: null });
     });
 
