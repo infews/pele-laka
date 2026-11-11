@@ -1,7 +1,8 @@
 # Export
 
-Area `EXPORT`: `pele-laka DIAGRAM [STYLE] -o FILE`, which writes one
-self-contained SVG and exits. Tests: `test/evals/export.test.js`.
+Area `EXPORT`: `pele-laka export [-c STYLE] [-o DIR] DIAGRAM`, which writes one
+self-contained SVG and exits. NAME is the diagram's file name without its
+extension. Tests: `test/evals/export.test.js`.
 
 ## Invariants
 - `EXPORT-INV-001`: The system shall never change the diagram or stylesheet files it reads.
@@ -17,16 +18,20 @@ self-contained SVG and exits. Tests: `test/evals/export.test.js`.
 - `EXPORT-CON-003`: When pele rejects a diagram with a syntax error, the system shall receive a `PeleError` carrying the error's line and column.
 
 ## End-to-end
-- `EXPORT-E2E-001`: When the user runs `pele-laka DIAGRAM STYLE -o FILE`, the system shall write FILE holding pele's rendering of DIAGRAM with STYLE embedded.
-- `EXPORT-E2E-002`: When an export succeeds, the system shall print `wrote <FILE>` to stdout and exit 0.
+- `EXPORT-E2E-001`: When the user runs `pele-laka export -c STYLE DIAGRAM`, the system shall write `NAME.svg` next to DIAGRAM, holding pele's rendering of DIAGRAM with STYLE embedded.
+- `EXPORT-E2E-002`: When an export succeeds, the system shall print `wrote <path>` for the SVG to stdout and exit 0.
 - `EXPORT-E2E-003`: When the user exports with no stylesheet, the system shall write exactly the SVG pele renders.
 - `EXPORT-E2E-004`: Where `--scheme dark` is given, the system shall write CSS in which every `prefers-color-scheme: dark` condition always holds and every `prefers-color-scheme: light` condition never does.
 - `EXPORT-E2E-005`: Where `--scheme light` is given, the system shall write CSS in which every `prefers-color-scheme: light` condition always holds and every `prefers-color-scheme: dark` condition never does.
 - `EXPORT-E2E-006`: Where `--scheme` is `auto` or absent, the system shall embed the stylesheet's text unchanged.
 - `EXPORT-E2E-007`: If the diagram has a syntax error, then the system shall print `DIAGRAM:LINE:COLUMN: MESSAGE` to stderr and exit 1.
 - `EXPORT-E2E-008`: If pele rejects the diagram without a position, then the system shall print `DIAGRAM: MESSAGE` to stderr and exit 1.
-- `EXPORT-E2E-009`: If the render fails, then the system shall not create or change FILE.
-- `EXPORT-E2E-010`: If FILE can't be written, then the system shall print the error to stderr and exit 1.
+- `EXPORT-E2E-009`: If the render fails, then the system shall not create or change the SVG.
+- `EXPORT-E2E-010`: If the SVG can't be written, then the system shall print the error to stderr and exit 1.
+- `EXPORT-E2E-012`: Where `-o DIR` is given, the system shall write `NAME.svg` in DIR instead.
+- `EXPORT-E2E-013`: If DIR isn't an existing directory, then the system shall print `no such directory: <DIR>` to stderr and exit 2.
+- `EXPORT-E2E-014`: When `NAME.svg` already exists, the system shall replace it.
+- `EXPORT-E2E-015`: If the SVG's path is the diagram's or the stylesheet's, then the system shall print `would overwrite <path>` to stderr and exit 2.
 
 ## Monitors
 

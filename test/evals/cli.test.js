@@ -1,7 +1,7 @@
 // Eval tests for the CLI area (docs/evals/cli.md). They drive bin/pele-laka,
 // not the modules behind it, so any of those can be regrown. Keep them.
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync, chmodSync, accessSync, constants } from "node:fs";
+import { mkdtempSync, mkdirSync, copyFileSync, readFileSync, readdirSync, writeFileSync, chmodSync, accessSync, constants } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import fc from "fast-check";
@@ -33,24 +33,49 @@ const readmeUsage = () => {
   return block[1];
 };
 
-// A command line with at least one thing wrong with it, and optionally -o, so
-// that a run that wrongly went ahead would write a file or start a server.
+// A project folder holding a copy of the diagram and an empty out/, so a run
+// that wrongly went ahead would leave a file behind.
+function project() {
+  const dir = tempDir();
+  const copy = join(dir, "flow.mmd");
+  copyFileSync(diagram, copy);
+  mkdirSync(join(dir, "out"));
+  return { dir, diagram: copy, out: join(dir, "out") };
+}
+
+const notACommand = (s) => !["preview", "export", "-h", "--help"].includes(s);
+
+// What can be wrong with a command line, given the command and the project.
 const flaw = fc.oneof(
-  fc.constant({ replaceDiagram: "missing.mmd" }),
-  fc.constantFrom("--bogus", "-z", "--palettes").map((option) => ({ extra: [option] })),
-  fc.string({ minLength: 1 }).filter((s) => !s.startsWith("-")).map((s) => ({ extra: [stylesheet, s] })),
+  fc.constant(() => ({ replaceDiagram: "missing.mmd" })),
+  fc.constantFrom("--bogus", "-z", "--palettes").map((option) => () => ({ extra: [option] })),
+  fc.string({ minLength: 1 }).filter((s) => !s.startsWith("-")).map((s) => () => ({ after: [s] })),
   fc.string().filter((s) => !["auto", "light", "dark"].includes(s) && !s.startsWith("-"))
-    .map((s) => ({ extra: ["--scheme", s] })),
-  fc.constantFrom("-c", "-o", "--scheme", "-p").map((option) => ({ trailing: option })),
+    .map((s) => () => ({ extra: ["--scheme", s] })),
+  fc.constantFrom("-c", "--scheme").map((option) => () => ({ trailing: option })),
+  fc.string({ minLength: 1 }).filter(notACommand).map((s) => () => ({ replaceCommand: s })),
+  fc.constant(({ diagram }) => ({ replaceCommand: diagram })),
+  fc.nat(2).map((i) => (_, command) => (command === "export"
+    ? { extra: [["-p", "8080"], ["-n"], ["-B", "Safari"]][i] }
+    : { extra: ["-o", "."] })),
+  fc.constant((_, command) => ({ trailing: command === "export" ? "-o" : "-p" })),
+  fc.constant(({ dir }, command) => (command === "export"
+    ? { extra: ["-o", join(dir, "missing")] }
+    : { replaceDiagram: "missing.mmd" })),
 );
 
-const badCommandLine = fc.tuple(flaw, fc.boolean(), fc.constantFrom("auto", "light", "dark"))
-  .map(([{ replaceDiagram, extra = [], trailing }, withOutput, scheme]) => {
-    const dir = tempDir();
-    const args = [replaceDiagram ?? diagram, "-n", "--scheme", scheme, ...extra];
-    if (withOutput) args.push("-o", join(dir, "out.svg"));
+// A command line with at least one thing wrong with it. Export sometimes also
+// gets a valid -o, and preview always gets -n, so a run that wrongly went ahead
+// writes a file or starts a server without opening a browser.
+const badCommandLine = fc.tuple(flaw, fc.constantFrom("preview", "export"), fc.boolean(), fc.constantFrom("auto", "light", "dark"))
+  .map(([makeFlaw, command, withOutput, scheme]) => {
+    const where = project();
+    const { replaceCommand, replaceDiagram, extra = [], after = [], trailing } = makeFlaw(where, command);
+    const options = command === "preview" ? ["-n"] : withOutput && !extra.includes("-o") ? ["-o", where.out] : [];
+    const args = [replaceCommand ?? command, "--scheme", scheme, ...options, ...extra,
+      replaceDiagram ?? where.diagram, ...after];
     if (trailing) args.push(trailing);
-    return { args, dir };
+    return { args, where };
   });
 
 describe("CLI", () => {
@@ -67,7 +92,9 @@ describe("CLI", () => {
   describe("end-to-end", () => {
     it("CLI-E2E-001 -h and --help print usage to stdout and exit 0", () => {
       // @spec CLI-E2E-001
-      for (const args of [["-h"], ["--help"], [diagram, "-h"], [diagram, stylesheet, "--help", "-o", "x.svg"]]) {
+      const { diagram, out } = project();
+      for (const args of [["-h"], ["--help"], ["export", "-h"], ["preview", diagram, "--help"],
+        ["export", "-c", stylesheet, "--help", "-o", out, diagram]]) {
         const result = run(...args);
         expect(result.status).withContext(args.join(" ")).toBe(0);
         expect(result.stdout).toMatch(/^usage: pele-laka /);
@@ -75,9 +102,9 @@ describe("CLI", () => {
       }
     });
 
-    it("CLI-E2E-002 no diagram prints usage to stderr and exits 2", () => {
+    it("CLI-E2E-002 no arguments, or a command with no diagram, prints usage to stderr and exits 2", () => {
       // @spec CLI-E2E-002
-      for (const args of [[], ["-n"], ["--scheme", "dark"]]) {
+      for (const args of [[], ["preview"], ["export"], ["preview", "-n"], ["export", "--scheme", "dark"]]) {
         const result = run(...args);
         expect(result.status).withContext(args.join(" ")).toBe(2);
         expect(result.stderr).toMatch(/^usage: pele-laka /);
@@ -86,85 +113,117 @@ describe("CLI", () => {
 
     it("CLI-E2E-003 a path that isn't an existing file prints no such file and exits 2", () => {
       // @spec CLI-E2E-003
-      for (const [args, path] of [
-        [["missing.mmd"], "missing.mmd"],
-        [[diagram, "missing.css"], "missing.css"],
-        [[diagram, "-c", "missing.css"], "missing.css"],
-        [[fixture("")], fixture("")], // a directory
-      ]) {
-        const result = run(...args);
-        expect(result.status).withContext(args.join(" ")).toBe(2);
-        expect(result.stderr).toBe(`no such file: ${path}\n`);
+      const { diagram, out } = project();
+      for (const command of [["preview", "-n"], ["export", "-o", out]]) {
+        for (const [args, path] of [
+          [["missing.mmd"], "missing.mmd"],
+          [["-c", "missing.css", diagram], "missing.css"],
+          [["--css", "missing.css", diagram], "missing.css"],
+          [[fixture("")], fixture("")], // a directory
+        ]) {
+          const result = run(...command, ...args);
+          expect(result.status).withContext([...command, ...args].join(" ")).toBe(2);
+          expect(result.stderr).toBe(`no such file: ${path}\n`);
+        }
       }
     });
 
-    it("CLI-E2E-004 an unknown option is named, followed by usage, and exits 2", () => {
+    it("CLI-E2E-004 an option the command doesn't take is named, followed by usage, and exits 2", () => {
       // @spec CLI-E2E-004
-      for (const option of ["--bogus", "-z", "--theme"]) {
-        const result = run(diagram, option);
-        expect(result.status).withContext(option).toBe(2);
-        expect(result.stderr).toContain(option);
-        expect(result.stderr).toMatch(/\n\nusage: pele-laka /);
+      const { diagram, out } = project();
+      for (const [command, option, ...value] of [
+        ["export", "--bogus"], ["export", "-z"], ["export", "--theme"],
+        ["export", "-p", "8080"], ["export", "--port", "8080"], ["export", "-n"], ["export", "--no-open"],
+        ["export", "-B", "Safari"], ["export", "--browser", "Safari"],
+        ["preview", "--bogus"], ["preview", "-o", out], ["preview", "--output", out],
+      ]) {
+        const args = [command, option, ...value, diagram];
+        const result = run(...args);
+        expect(result.status).withContext(args.join(" ")).toBe(2);
+        expect(result.stderr).withContext(args.join(" ")).toContain(option);
+        expect(result.stderr).withContext(args.join(" ")).toMatch(/\n\nusage: pele-laka /);
       }
+      expect(readdirSync(out)).toEqual([]);
     });
 
     it("CLI-E2E-005 an option without its value is named and exits 2", () => {
       // @spec CLI-E2E-005
-      for (const option of ["-c", "--css", "-o", "--output", "--scheme"]) {
-        const result = run(diagram, option);
-        expect(result.status).withContext(option).toBe(2);
-        expect(result.stderr).toContain(option);
+      const { diagram } = project();
+      for (const [command, option] of [
+        ["export", "-c"], ["export", "--css"], ["export", "-o"], ["export", "--output"], ["export", "--scheme"],
+        ["preview", "-c"], ["preview", "--scheme"], ["preview", "-p"], ["preview", "--port"], ["preview", "-B"],
+      ]) {
+        const result = run(command, diagram, option);
+        expect(result.status).withContext(`${command} ${option}`).toBe(2);
+        expect(result.stderr).withContext(`${command} ${option}`).toContain(option);
       }
     });
 
-    it("CLI-E2E-006 an extra argument is named, followed by usage, and exits 2", () => {
+    it("CLI-E2E-006 a second diagram is named, followed by usage, and exits 2", () => {
       // @spec CLI-E2E-006
-      for (const args of [[diagram, stylesheet, "extra"], [diagram, stylesheet, "-c", stylesheet]]) {
+      const { diagram, out } = project();
+      for (const [args, extra] of [
+        [["export", "-o", out, diagram, "extra"], "extra"],
+        [["export", "-o", out, diagram, stylesheet], stylesheet],
+        [["preview", "-n", diagram, diagram], diagram],
+      ]) {
         const result = run(...args);
         expect(result.status).withContext(args.join(" ")).toBe(2);
-        expect(result.stderr).toMatch(new RegExp(`^unexpected argument: ${args[2] === "extra" ? "extra" : stylesheet}\n\nusage: pele-laka `));
+        expect(result.stderr).toMatch(new RegExp(`^unexpected argument: ${extra}\n\nusage: pele-laka `));
       }
     });
 
-    it("CLI-E2E-007 the stylesheet as positional, -c or --css is the same", () => {
+    it("CLI-E2E-007 -c and --css are the same", () => {
       // @spec CLI-E2E-007
-      const exported = (...args) => {
-        const out = join(tempDir(), "out.svg");
-        const result = run(diagram, ...args, "-o", out);
+      const { diagram } = project();
+      const exported = (option) => {
+        const out = tempDir();
+        const result = run("export", option, stylesheet, "-o", out, diagram);
         expect(result.status).withContext(result.stderr).toBe(0);
-        return readFileSync(out, "utf8");
+        return readFileSync(join(out, "flow.svg"), "utf8");
       };
-      const positional = exported(stylesheet);
-      expect(positional).toMatch(/<style>/);
-      expect(exported("-c", stylesheet)).toBe(positional);
-      expect(exported("--css", stylesheet)).toBe(positional);
+      const short = exported("-c");
+      expect(short).toMatch(/<style>/);
+      expect(exported("--css")).toBe(short);
     });
 
     it("CLI-E2E-008 a --scheme other than auto, light or dark exits 2", () => {
       // @spec CLI-E2E-008
-      for (const value of ["blue", "Dark", ""]) {
-        const result = run(diagram, "--scheme", value);
-        expect(result.status).withContext(value).toBe(2);
-        expect(result.stderr).toBe(`--scheme must be one of auto, light, dark, got: ${value}\n`);
+      const { diagram, out } = project();
+      for (const command of [["preview", "-n"], ["export", "-o", out]]) {
+        for (const value of ["blue", "Dark", ""]) {
+          const result = run(...command, "--scheme", value, diagram);
+          expect(result.status).withContext(`${command[0]} ${value}`).toBe(2);
+          expect(result.stderr).toBe(`--scheme must be one of auto, light, dark, got: ${value}\n`);
+        }
       }
     });
-  });
 
-  describe("end-to-end, the name", () => {
     it("CLI-E2E-011 the usage text begins usage: pele-laka", () => {
       // @spec CLI-E2E-011
       const result = run("--help");
       expect(result.stdout.startsWith("usage: pele-laka ")).withContext(result.stdout || result.stderr).toBe(true);
+    });
+
+    it("CLI-E2E-012 a first argument that isn't a command is named, followed by usage, and exits 2", () => {
+      // @spec CLI-E2E-012
+      const { diagram } = project();
+      for (const args of [["render", diagram], [diagram], ["Export", diagram], ["-n", "preview", diagram]]) {
+        const result = run(...args);
+        expect(result.status).withContext(args.join(" ")).toBe(2);
+        expect(result.stderr).withContext(args.join(" ")).toBe(`unknown command: ${args[0]}\n\n${readmeUsage()}\n`);
+      }
     });
   });
 
   describe("invariants", () => {
     it("CLI-INV-001 invalid arguments exit 2, write nothing and start no server", () => {
       // @spec CLI-INV-001
-      fc.assert(fc.property(badCommandLine, ({ args, dir }) => {
+      fc.assert(fc.property(badCommandLine, ({ args, where }) => {
         const result = run(...args);
         expect(result.status).withContext(`${JSON.stringify(args)}\n${result.stderr}`).toBe(2);
-        expect(readdirSync(dir)).toEqual([]);
+        expect(readdirSync(where.dir).sort()).toEqual(["flow.mmd", "out"]);
+        expect(readdirSync(where.out)).toEqual([]);
       }), { numRuns: 30 });
     });
 

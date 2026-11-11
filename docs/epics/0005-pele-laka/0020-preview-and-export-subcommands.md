@@ -57,6 +57,20 @@ Feature: preview and export subcommands
 Render errors, missing files and unwritable output behave as they do today.
 
 ## EARS Specifications
+- `CLI-E2E-002` (changed): no arguments, or a command with no diagram, prints usage to stderr, exit 2.
+- `CLI-E2E-004` (changed): an option the command doesn't take is named, then usage, exit 2.
+- `CLI-E2E-006` (changed): more than one diagram is `unexpected argument`.
+- `CLI-E2E-007` (changed): `-c` and `--css` are the same.
+- `CLI-E2E-012` (new): a first argument other than `preview`, `export`, `-h`, `--help` is `unknown command: <arg>`, then usage, exit 2.
+- `EXPORT-E2E-001` (changed): `export -c STYLE DIAGRAM` writes `NAME.svg` next to DIAGRAM.
+- `EXPORT-E2E-002`, `-009`, `-010` (changed): `wrote <path>`, render failures and write errors are about the SVG.
+- `EXPORT-E2E-012` (new): `-o DIR` writes `NAME.svg` in DIR.
+- `EXPORT-E2E-013` (new): a `-o` that isn't an existing directory is `no such directory: <DIR>`, exit 2.
+- `EXPORT-E2E-014` (new): an existing `NAME.svg` is replaced.
+- `EXPORT-E2E-015` (new): an SVG path that is the diagram's or stylesheet's is `would overwrite <path>`, exit 2.
+- `PREVIEW-E2E-001`, `PREVIEW-E2E-004` (changed): `preview [-c STYLE] DIAGRAM`; the page matches what `export` writes.
+
+Every other eval test that runs the CLI now uses the subcommands, `-c` and `-o DIR`; their eval text is unchanged. `CLI-INV-001`/`-002`'s generator adds unknown commands, the other command's options and a missing `-o` directory.
 
 ## Implementation Plan
 

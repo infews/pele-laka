@@ -1,6 +1,6 @@
 # Preview
 
-Area `PREVIEW`: `pele-laka DIAGRAM [STYLE]` without `-o`, which serves a
+Area `PREVIEW`: `pele-laka preview [-c STYLE] DIAGRAM`, which serves a
 live-reloading page, plus the options only preview uses (`-p`, `-n`, `-B`).
 Tests: `test/evals/preview.test.js`.
 
@@ -14,10 +14,10 @@ Tests: `test/evals/preview.test.js`.
 - `PREVIEW-CON-003`: Where `-n` is given, the system shall open nothing.
 
 ## End-to-end
-- `PREVIEW-E2E-001`: When the user runs `pele-laka DIAGRAM [STYLE]` without `-o`, the system shall serve the preview page and print `pele-laka: <URL>  (Ctrl-C to stop)` to stdout.
+- `PREVIEW-E2E-001`: When the user runs `pele-laka preview [-c STYLE] DIAGRAM`, the system shall serve the preview page and print `pele-laka: <URL>  (Ctrl-C to stop)` to stdout.
 - `PREVIEW-E2E-002`: Where `-p PORT` is given, the system shall serve on PORT; where it is absent or 0, on a free port the OS picks.
 - `PREVIEW-E2E-003`: If `-p` isn't a whole number from 0 to 65535, then the system shall print `--port must be …` to stderr and exit 2.
-- `PREVIEW-E2E-004`: The page shall show the diagram exactly as `-o` with the same `--scheme` would write it.
+- `PREVIEW-E2E-004`: The page shall show the diagram exactly as `export` with the same `--scheme` would write the SVG.
 - `PREVIEW-E2E-005`: While `--scheme` is `auto`, the diagram and the page shall follow the browser's light or dark setting, switching without a reload.
 - `PREVIEW-E2E-006`: Where `--scheme` is `light` or `dark`, the page around the diagram shall use that scheme, whatever the browser's setting.
 - `PREVIEW-E2E-007`: The page shall paint the diagram's area with the stylesheet's `--pele-bg`, or white if the stylesheet doesn't set it.

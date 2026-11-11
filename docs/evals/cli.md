@@ -1,8 +1,8 @@
 # Command line
 
-Area `CLI`: the argument rules export and preview share — usage, help, files,
-the stylesheet argument, `--scheme`, and exit code 2. Options that belong to one
-mode are pinned in that mode's area. Tests: `test/evals/cli.test.js`.
+Area `CLI`: the argument rules the `preview` and `export` commands share —
+usage, help, the command, files, `-c`, `--scheme`, and exit code 2. Options that
+belong to one command are pinned in that command's area. Tests: `test/evals/cli.test.js`.
 
 ## Invariants
 - `CLI-INV-001`: If the arguments are invalid, then the system shall exit 2 without writing any file or starting a server.
@@ -14,14 +14,15 @@ mode are pinned in that mode's area. Tests: `test/evals/cli.test.js`.
 
 ## End-to-end
 - `CLI-E2E-001`: When the user passes `-h` or `--help` and no unknown option, the system shall print the usage text to stdout and exit 0, whether or not a diagram is given.
-- `CLI-E2E-002`: When the user gives no diagram, the system shall print the usage text to stderr and exit 2.
+- `CLI-E2E-002`: When the user gives no arguments, or a command with no diagram, the system shall print the usage text to stderr and exit 2.
 - `CLI-E2E-003`: If the diagram or stylesheet path isn't an existing file, then the system shall print `no such file: <path>` to stderr and exit 2.
-- `CLI-E2E-004`: If the user passes an unknown option, then the system shall print an error naming it, then the usage text, to stderr and exit 2.
+- `CLI-E2E-004`: If the user passes an option the command doesn't take, then the system shall print an error naming it, then the usage text, to stderr and exit 2.
 - `CLI-E2E-005`: If the user passes an option without its value, then the system shall print an error naming the option to stderr and exit 2.
-- `CLI-E2E-006`: If the user passes more than a diagram and one stylesheet, counting `-c`, then the system shall print `unexpected argument: <arg>`, then the usage text, to stderr and exit 2.
-- `CLI-E2E-007`: The system shall treat `DIAGRAM STYLE`, `DIAGRAM -c STYLE` and `DIAGRAM --css STYLE` the same.
+- `CLI-E2E-006`: If the user passes more than one diagram, then the system shall print `unexpected argument: <arg>`, then the usage text, to stderr and exit 2.
+- `CLI-E2E-007`: The system shall treat `-c STYLE` and `--css STYLE` the same.
 - `CLI-E2E-008`: If `--scheme` is not `auto`, `light` or `dark`, then the system shall print `--scheme must be one of auto, light, dark, got: <value>` to stderr and exit 2.
 - `CLI-E2E-011`: The usage text shall begin `usage: pele-laka `.
+- `CLI-E2E-012`: If the first argument isn't `preview`, `export`, `-h` or `--help`, then the system shall print `unknown command: <arg>`, then the usage text, to stderr and exit 2.
 
 ## Monitors
 

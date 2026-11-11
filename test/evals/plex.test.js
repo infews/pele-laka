@@ -27,14 +27,14 @@ const CARBON = (() => {
 function exported(mmd, { css = THEME, scheme = "auto" } = {}) {
   const dir = mkdtempSync(join(tmpdir(), "pele-laka-eval-"));
   writeFileSync(join(dir, "d.mmd"), mmd);
-  const args = [join(dir, "d.mmd")];
+  const args = ["export", "--scheme", scheme];
   if (css !== null) {
     writeFileSync(join(dir, "s.css"), css);
-    args.push(join(dir, "s.css"));
+    args.push("-c", join(dir, "s.css"));
   }
-  const result = spawnSync(process.execPath, [bin, ...args, "--scheme", scheme, "-o", join(dir, "o.svg")], { encoding: "utf8" });
+  const result = spawnSync(process.execPath, [bin, ...args, join(dir, "d.mmd")], { encoding: "utf8" });
   expect(result.status).withContext(result.stderr).toBe(0);
-  return readFileSync(join(dir, "o.svg"), "utf8");
+  return readFileSync(join(dir, "d.svg"), "utf8");
 }
 
 let browser;

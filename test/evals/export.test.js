@@ -1,9 +1,9 @@
 // Eval tests for the EXPORT area (docs/evals/export.md). They drive the CLI,
 // not the modules behind it, so any of those can be regrown. Keep them.
 import { spawnSync, execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import fc from "fast-check";
 import { chromium } from "playwright";
 import { render, PeleError } from "pele";
@@ -19,13 +19,17 @@ function tempFile(name, contents) {
   return path;
 }
 
-// Exports the flow fixture with `css` (text) and returns the SVG written.
+// Exports the flow fixture with `css` (text) into a fresh directory and
+// returns the SVG written.
 function exportWith(css, ...args) {
-  const out = join(tempDir(), "out.svg");
-  const result = run(fixture("flow.mmd"), tempFile("style.css", css), ...args, "-o", out);
+  const out = tempDir();
+  const result = run("export", "-c", tempFile("style.css", css), ...args, "-o", out, fixture("flow.mmd"));
   expect(result.status).withContext(result.stderr).toBe(0);
-  return readFileSync(out, "utf8");
+  return readFileSync(join(out, "flow.svg"), "utf8");
 }
+
+// A copy of a fixture diagram, alone in a fresh directory, under `name`.
+const diagramCopy = (fixtureName, name = fixtureName) => tempFile(name, readFileSync(fixture(fixtureName)));
 
 const hasXmllint = (() => {
   try { execFileSync("xmllint", ["--version"], { stdio: "ignore" }); return true; }
@@ -103,31 +107,42 @@ describe("EXPORT", () => {
       }
     }
 
-    it("EXPORT-E2E-001 -o writes the rendered diagram with the stylesheet embedded", () => {
+    it("EXPORT-E2E-001 export writes NAME.svg next to the diagram, with the stylesheet embedded", () => {
       // @spec EXPORT-E2E-001
       needsXmllint();
       const css = readFileSync(fixture("theme.css"), "utf8");
-      const svg = exportWith(css);
+      const diagram = diagramCopy("flow.mmd", "my.flow.mmd");
+      const result = run("export", "-c", fixture("theme.css"), diagram);
+      expect(result.status).withContext(result.stderr).toBe(0);
+      const dir = dirname(diagram);
+      expect(readdirSync(dir).sort()).toEqual(["my.flow.mmd", "my.flow.svg"]);
+      const svg = readFileSync(join(dir, "my.flow.svg"), "utf8");
       expect(svg).toMatch(/Mermaid text/);
       expect(styleText(svg).trim()).toBe(css.trim());
     });
 
-    it("EXPORT-E2E-002 a successful export prints wrote <FILE> and exits 0", () => {
+    it("EXPORT-E2E-002 a successful export prints wrote <path> for the SVG and exits 0", () => {
       // @spec EXPORT-E2E-002
-      const out = join(tempDir(), "out.svg");
-      const result = run(fixture("flow.mmd"), "-o", out);
+      const out = tempDir();
+      const result = run("export", "-o", out, fixture("flow.mmd"));
       expect(result.status).toBe(0);
-      expect(result.stdout).toBe(`wrote ${out}\n`);
+      expect(result.stdout).toBe(`wrote ${join(out, "flow.svg")}\n`);
+
+      const diagram = diagramCopy("flow.mmd");
+      const beside = run("export", diagram);
+      expect(beside.status).toBe(0);
+      expect(beside.stdout).toBe(`wrote ${join(dirname(diagram), "flow.svg")}\n`);
     });
 
     it("EXPORT-E2E-003 with no stylesheet the file is exactly pele's svg", () => {
       // @spec EXPORT-E2E-003
-      const out = join(tempDir(), "out.svg");
-      expect(run(fixture("flow.mmd"), "-o", out).status).toBe(0);
-      expect(readFileSync(out, "utf8")).toBe(render(readFileSync(fixture("flow.mmd"), "utf8")).svg);
+      const out = tempDir();
+      expect(run("export", "-o", out, fixture("flow.mmd")).status).toBe(0);
+      const written = readFileSync(join(out, "flow.svg"), "utf8");
+      expect(written).toBe(render(readFileSync(fixture("flow.mmd"), "utf8")).svg);
 
       // A stylesheet with nothing but whitespace counts as none.
-      expect(exportWith(" \n\t\n")).toBe(readFileSync(out, "utf8"));
+      expect(exportWith(" \n\t\n")).toBe(written);
     });
 
     it("EXPORT-E2E-004 --scheme dark applies dark rules and never light ones", async () => {
@@ -157,7 +172,7 @@ describe("EXPORT", () => {
 
     it("EXPORT-E2E-007 a syntax error prints DIAGRAM:LINE:COLUMN and exits 1", () => {
       // @spec EXPORT-E2E-007
-      const result = run(fixture("broken.mmd"), "-o", join(tempDir(), "out.svg"));
+      const result = run("export", "-o", tempDir(), fixture("broken.mmd"));
       expect(result.status).toBe(1);
       expect(result.stderr).toMatch(new RegExp(`^${fixture("broken.mmd")}:2:9: Parse error`));
     });
@@ -165,28 +180,87 @@ describe("EXPORT", () => {
     it("EXPORT-E2E-008 an error with no position prints DIAGRAM: MESSAGE and exits 1", () => {
       // @spec EXPORT-E2E-008
       const diagram = tempFile("d.mmd", "not a diagram");
-      const result = run(diagram, "-o", join(tempDir(), "out.svg"));
+      const result = run("export", "-o", tempDir(), diagram);
       expect(result.status).toBe(1);
       expect(result.stderr).toBe(`${diagram}: No diagram type detected for the given text.\n`);
     });
 
-    it("EXPORT-E2E-009 a failed render neither creates nor changes the output file", () => {
+    it("EXPORT-E2E-009 a failed render neither creates nor changes the SVG", () => {
       // @spec EXPORT-E2E-009
-      const fresh = join(tempDir(), "out.svg");
-      expect(run(fixture("broken.mmd"), "-o", fresh).status).toBe(1);
-      expect(existsSync(fresh)).toBe(false);
+      const fresh = tempDir();
+      expect(run("export", "-o", fresh, fixture("broken.mmd")).status).toBe(1);
+      expect(readdirSync(fresh)).toEqual([]);
 
-      const existing = tempFile("out.svg", "previous");
-      expect(run(fixture("broken.mmd"), "-o", existing).status).toBe(1);
+      const beside = diagramCopy("broken.mmd");
+      expect(run("export", beside).status).toBe(1);
+      expect(readdirSync(dirname(beside))).toEqual(["broken.mmd"]);
+
+      const existing = tempFile("broken.svg", "previous");
+      expect(run("export", "-o", dirname(existing), fixture("broken.mmd")).status).toBe(1);
       expect(readFileSync(existing, "utf8")).toBe("previous");
     });
 
-    it("EXPORT-E2E-010 an output path that can't be written prints the error and exits 1", () => {
+    it("EXPORT-E2E-010 an SVG that can't be written prints the error and exits 1", () => {
       // @spec EXPORT-E2E-010
-      const out = join(tempDir(), "missing-dir", "out.svg");
-      const result = run(fixture("flow.mmd"), "-o", out);
+      const out = tempDir();
+      mkdirSync(join(out, "flow.svg")); // a directory where the SVG would go
+      const result = run("export", "-o", out, fixture("flow.mmd"));
       expect(result.status).toBe(1);
-      expect(result.stderr).toMatch(new RegExp(`ENOENT.*${out}`));
+      expect(result.stderr).toMatch(new RegExp(`EISDIR.*${join(out, "flow.svg")}`));
+    });
+
+    it("EXPORT-E2E-012 -o DIR writes NAME.svg in DIR instead", () => {
+      // @spec EXPORT-E2E-012
+      const diagram = diagramCopy("flow.mmd");
+      const out = tempDir();
+      const result = run("export", "-o", out, diagram);
+      expect(result.status).withContext(result.stderr).toBe(0);
+      expect(readdirSync(out)).toEqual(["flow.svg"]);
+      expect(readFileSync(join(out, "flow.svg"), "utf8")).toBe(render(readFileSync(diagram, "utf8")).svg);
+      expect(readdirSync(dirname(diagram))).toEqual(["flow.mmd"]);
+    });
+
+    it("EXPORT-E2E-013 a -o that isn't an existing directory prints no such directory and exits 2", () => {
+      // @spec EXPORT-E2E-013
+      for (const dir of [join(tempDir(), "missing"), tempFile("plain", "a file")]) {
+        const result = run("export", "-o", dir, fixture("flow.mmd"));
+        expect(result.status).withContext(dir).toBe(2);
+        expect(result.stderr).toBe(`no such directory: ${dir}\n`);
+      }
+    });
+
+    it("EXPORT-E2E-014 an existing NAME.svg is replaced", () => {
+      // @spec EXPORT-E2E-014
+      const diagram = diagramCopy("flow.mmd");
+      const svg = join(dirname(diagram), "flow.svg");
+      writeFileSync(svg, "previous");
+      expect(run("export", diagram).status).toBe(0);
+      expect(readFileSync(svg, "utf8")).toBe(render(readFileSync(diagram, "utf8")).svg);
+    });
+
+    it("EXPORT-E2E-015 an SVG path that is the diagram's or the stylesheet's prints would overwrite and exits 2", () => {
+      // @spec EXPORT-E2E-015
+      const svgDiagram = diagramCopy("flow.mmd", "flow.svg");
+      const dir = tempDir();
+      const sheetBeside = join(dir, "flow.svg");
+      writeFileSync(sheetBeside, ".pele {}");
+      const diagramBeside = join(dir, "flow.mmd");
+      writeFileSync(diagramBeside, readFileSync(fixture("flow.mmd")));
+      const out = tempDir();
+      const sheetInOut = join(out, "flow.svg");
+      writeFileSync(sheetInOut, ".pele {}");
+
+      for (const [args, path] of [
+        [[svgDiagram], svgDiagram],
+        [["-c", sheetBeside, diagramBeside], sheetBeside],
+        [["-c", sheetInOut, "-o", out, fixture("flow.mmd")], sheetInOut],
+      ]) {
+        const before = readFileSync(path, "utf8");
+        const result = run("export", ...args);
+        expect(result.status).withContext(args.join(" ")).toBe(2);
+        expect(result.stderr).toBe(`would overwrite ${path}\n`);
+        expect(readFileSync(path, "utf8")).toBe(before);
+      }
     });
   });
 
@@ -197,7 +271,7 @@ describe("EXPORT", () => {
         const diagram = tempFile("d.mmd", readFileSync(fixture("flow.mmd")));
         const stylesheet = tempFile("s.css", css);
         const before = [readFileSync(diagram), readFileSync(stylesheet)];
-        expect(run(diagram, stylesheet, "--scheme", scheme, "-o", join(tempDir(), "o.svg")).status).toBe(0);
+        expect(run("export", "-c", stylesheet, "--scheme", scheme, "-o", tempDir(), diagram).status).toBe(0);
         expect([readFileSync(diagram), readFileSync(stylesheet)]).toEqual(before);
       }), RUNS);
     });

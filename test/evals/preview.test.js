@@ -2,7 +2,7 @@
 // CLI and drive the page in Chromium, so the server, watcher and page can all
 // be regrown. Keep them.
 import { spawn, spawnSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, readFileSync, renameSync, unlinkSync, readdirSync, existsSync, chmodSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, renameSync, unlinkSync, readdirSync, existsSync, chmodSync } from "node:fs";
 import { createServer, connect } from "node:net";
 import { networkInterfaces, tmpdir } from "node:os";
 import { join } from "node:path";
@@ -132,7 +132,7 @@ describe("PREVIEW", () => {
       // @spec PREVIEW-CON-001
       const { diagram } = project();
       const { env, log } = fakeOpeners();
-      await withPreview([diagram], async ({ url }) => {
+      await withPreview(["preview", diagram], async ({ url }) => {
         const line = await waitFor(() => openedLine(log), 3000);
         const opener = process.platform === "darwin" ? "open" : "xdg-open";
         expect(line).toBe(`${opener} [${url}]\n`);
@@ -144,7 +144,7 @@ describe("PREVIEW", () => {
       if (process.platform !== "darwin") pending("macOS only");
       const { diagram } = project();
       const { env, log } = fakeOpeners();
-      await withPreview([diagram, "-B", "Some Browser"], async ({ url }) => {
+      await withPreview(["preview", diagram, "-B", "Some Browser"], async ({ url }) => {
         const line = await waitFor(() => openedLine(log), 3000);
         expect(line).toBe(`open [-a] [Some Browser] [${url}]\n`);
       }, { env });
@@ -154,7 +154,7 @@ describe("PREVIEW", () => {
       // @spec PREVIEW-CON-003
       const { diagram } = project();
       const { env, log } = fakeOpeners();
-      await withPreview([diagram, "-n"], async () => {
+      await withPreview(["preview", diagram, "-n"], async () => {
         await sleep(1000);
         expect(existsSync(log)).toBe(false);
       }, { env });
@@ -165,7 +165,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-001 preview serves the page and prints its URL", async () => {
       // @spec PREVIEW-E2E-001
       const { diagram, stylesheet } = project({ css: SCHEMED });
-      await withPreview([diagram, stylesheet, "-n"], async ({ url, out }) => {
+      await withPreview(["preview", "-c", stylesheet, "-n", diagram], async ({ url, out }) => {
         expect(out.stdout).toMatch(/^pele-laka: http:\/\/127\.0\.0\.1:\d+\/ {2}\(Ctrl-C to stop\)\n/m);
         const page = await open(url);
         expect(await stageText(page)).toMatch(/First/);
@@ -177,11 +177,11 @@ describe("PREVIEW", () => {
       // @spec PREVIEW-E2E-002
       const { diagram } = project();
       const port = await freePort();
-      await withPreview([diagram, "-n", "-p", String(port)], async ({ url }) => {
+      await withPreview(["preview", diagram, "-n", "-p", String(port)], async ({ url }) => {
         expect(url).toBe(`http://127.0.0.1:${port}/`);
       });
       for (const args of [[], ["-p", "0"]]) {
-        await withPreview([diagram, "-n", ...args], async ({ url }) => {
+        await withPreview(["preview", diagram, "-n", ...args], async ({ url }) => {
           expect(Number(new URL(url).port)).toBeGreaterThan(0);
           expect((await fetch(url)).status).toBe(200);
         });
@@ -192,21 +192,22 @@ describe("PREVIEW", () => {
       // @spec PREVIEW-E2E-003
       const { diagram } = project();
       for (const port of ["abc", "65536", "1.5", "99999999"]) {
-        const result = spawnSync(process.execPath, [bin, diagram, "-n", "-p", port], { encoding: "utf8", timeout: 5000 });
+        const result = spawnSync(process.execPath, [bin, "preview", diagram, "-n", "-p", port], { encoding: "utf8", timeout: 5000 });
         expect(result.status).withContext(port).toBe(2);
         expect(result.stderr).toMatch(/^--port must be /);
       }
     });
 
-    it("PREVIEW-E2E-004 the page shows what -o with the same --scheme writes", async () => {
+    it("PREVIEW-E2E-004 the page shows what export with the same --scheme writes", async () => {
       // @spec PREVIEW-E2E-004
       const { dir, diagram, stylesheet } = project({ css: `${SCHEMED}\n.pele-node > rect { stroke-width: 3px; }` });
       for (const scheme of ["auto", "light", "dark"]) {
-        const file = join(dir, `${scheme}.svg`);
-        const exported = spawnSync(process.execPath, [bin, diagram, stylesheet, "--scheme", scheme, "-o", file]);
+        const out = join(dir, scheme);
+        mkdirSync(out);
+        const exported = spawnSync(process.execPath, [bin, "export", "-c", stylesheet, "--scheme", scheme, "-o", out, diagram]);
         expect(exported.status).toBe(0);
-        const svg = readFileSync(file, "utf8");
-        await withPreview([diagram, stylesheet, "-n", "--scheme", scheme], async ({ url }) => {
+        const svg = readFileSync(join(out, "d.svg"), "utf8");
+        await withPreview(["preview", "-c", stylesheet, "-n", "--scheme", scheme, diagram], async ({ url }) => {
           const page = await open(url);
           // Compare as XML: the stylesheet's text, then everything else.
           const [shown, expected] = await page.evaluate((text) => [
@@ -228,7 +229,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-005 with --scheme auto the diagram and page follow the browser, without a reload", async () => {
       // @spec PREVIEW-E2E-005
       const { diagram, stylesheet } = project({ css: SCHEMED });
-      await withPreview([diagram, stylesheet, "-n"], async ({ url }) => {
+      await withPreview(["preview", "-c", stylesheet, "-n", diagram], async ({ url }) => {
         const page = await open(url, "light");
         expect(await probe(page)).toBe("light");
         expect(luminance(await pageBackground(page))).toBeGreaterThan(0.5);
@@ -245,7 +246,7 @@ describe("PREVIEW", () => {
       // @spec PREVIEW-E2E-006
       const { diagram, stylesheet } = project({ css: SCHEMED });
       for (const [scheme, viewer, isDark] of [["dark", "light", true], ["light", "dark", false]]) {
-        await withPreview([diagram, stylesheet, "-n", "--scheme", scheme], async ({ url }) => {
+        await withPreview(["preview", "-c", stylesheet, "-n", "--scheme", scheme, diagram], async ({ url }) => {
           const page = await open(url, viewer);
           await page.waitForFunction((s) => document.documentElement.dataset.scheme === s, scheme);
           expect(luminance(await pageBackground(page)) < 0.5).withContext(`${scheme} page in a ${viewer} browser`).toBe(isDark);
@@ -260,7 +261,7 @@ describe("PREVIEW", () => {
       const area = (page) => page.evaluate(() => getComputedStyle(document.querySelector("#pp-stage svg")).backgroundColor);
       for (const [css, expected] of [[".pele { --pele-bg: rgb(1, 2, 3); }", "rgb(1, 2, 3)"], [null, "rgb(255, 255, 255)"]]) {
         const { diagram, stylesheet } = project({ css });
-        await withPreview([diagram, ...(stylesheet ? [stylesheet] : []), "-n"], async ({ url }) => {
+        await withPreview(["preview", ...(stylesheet ? ["-c", stylesheet] : []), "-n", diagram], async ({ url }) => {
           for (const viewer of ["light", "dark"]) {
             const page = await open(url, viewer);
             expect(await area(page)).withContext(`${css} in a ${viewer} browser`).toBe(expected);
@@ -273,7 +274,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-008 saving the diagram or stylesheet updates the page without a reload", async () => {
       // @spec PREVIEW-E2E-008
       const { diagram, stylesheet } = project({ css: ".pele { --probe: one; }" });
-      await withPreview([diagram, stylesheet, "-n"], async ({ url }) => {
+      await withPreview(["preview", "-c", stylesheet, "-n", diagram], async ({ url }) => {
         const page = await open(url);
         writeFileSync(diagram, flow("Second"));
         await showsLabel(page, "Second");
@@ -288,7 +289,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-009 a save that replaces the file by rename still updates the page", async () => {
       // @spec PREVIEW-E2E-009
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ url }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ url }) => {
         const page = await open(url);
         for (const label of ["Renamed", "Renamed again"]) {
           writeFileSync(`${diagram}.tmp`, flow(label));
@@ -302,7 +303,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-010 each successful render after a save prints rendered (revision N)", async () => {
       // @spec PREVIEW-E2E-010
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ out }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ out }) => {
         writeFileSync(diagram, flow("Second"));
         await waitFor(() => /^rendered \(revision 2\)$/m.test(out.stdout), 3000, () => out.stdout);
         await sleep(300);
@@ -314,7 +315,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-016 one save, by writing or by rename, renders once", async () => {
       // @spec PREVIEW-E2E-016
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ out }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ out }) => {
         const renders = () => out.stdout.match(/^rendered \(revision \d+\)$/gm)?.length ?? 0;
         writeFileSync(diagram, flow("Written"));
         await waitFor(() => renders() >= 1, 3000, () => out.stdout);
@@ -332,7 +333,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-017 a diagram deleted and created again updates the page", async () => {
       // @spec PREVIEW-E2E-017
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ url }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ url }) => {
         const page = await open(url);
         unlinkSync(diagram);
         await sleep(500);
@@ -346,7 +347,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-018 the preview page is titled pele-laka", async () => {
       // @spec PREVIEW-E2E-018
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ url }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ url }) => {
         const page = await open(url);
         expect(await page.title()).toBe("pele-laka");
         await page.close();
@@ -369,7 +370,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-011 a failed render keeps the last diagram, greyed, under the error", async () => {
       // @spec PREVIEW-E2E-011
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ url }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ url }) => {
         const page = await open(url);
         writeFileSync(diagram, BROKEN);
         await page.waitForFunction(() => document.querySelector("#pp-error").textContent.length > 0, null, { timeout: 3000 });
@@ -386,7 +387,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-012 a failed render prints the error and keeps serving, even at startup", async () => {
       // @spec PREVIEW-E2E-012
       const { diagram } = project({ mmd: BROKEN });
-      await withPreview([diagram, "-n"], async ({ url, out }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ url, out }) => {
         expect(out.stderr).toMatch(/d\.mmd:2:9: Parse error/);
         const page = await browser.newPage();
         await page.goto(url);
@@ -405,7 +406,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-E2E-013 rendering again after a failure clears the error", async () => {
       // @spec PREVIEW-E2E-013
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ url }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ url }) => {
         const page = await open(url);
         writeFileSync(diagram, BROKEN);
         await page.waitForFunction(() => document.querySelector("#pp-error").textContent.length > 0, null, { timeout: 3000 });
@@ -431,7 +432,7 @@ describe("PREVIEW", () => {
       const busy = createServer();
       await new Promise((resolve) => busy.listen(0, "127.0.0.1", resolve));
       try {
-        const result = spawnSync(process.execPath, [bin, diagram, "-n", "-p", String(busy.address().port)], { encoding: "utf8", timeout: 5000 });
+        const result = spawnSync(process.execPath, [bin, "preview", diagram, "-n", "-p", String(busy.address().port)], { encoding: "utf8", timeout: 5000 });
         expect(result.status).toBe(1);
         expect(result.stderr).toMatch(/^could not start server: .*EADDRINUSE/);
       } finally {
@@ -448,7 +449,7 @@ describe("PREVIEW", () => {
       // @spec PREVIEW-INV-001
       if (outsideAddresses().length === 0) pending("no network interface");
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ url }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ url }) => {
         const port = Number(new URL(url).port);
         for (const host of outsideAddresses()) {
           const outcome = await new Promise((resolve) => {
@@ -472,7 +473,7 @@ describe("PREVIEW", () => {
       await fc.assert(fc.asyncProperty(fc.array(save, { minLength: 1, maxLength: 5 }), async (saves) => {
         const { dir, diagram, stylesheet } = project({ css: SCHEMED });
         const expected = { "d.mmd": readFileSync(diagram, "utf8"), "s.css": SCHEMED };
-        await withPreview([diagram, stylesheet, "-n"], async ({ url, cwd }) => {
+        await withPreview(["preview", "-c", stylesheet, "-n", diagram], async ({ url, cwd }) => {
           const page = await open(url);
           for (const [i, { file, how }] of saves.entries()) {
             const path = file === "diagram" ? diagram : stylesheet;
@@ -495,7 +496,7 @@ describe("PREVIEW", () => {
     it("PREVIEW-MON-001 a save shows on the page within 1 second", async () => {
       // @spec PREVIEW-MON-001
       const { diagram } = project();
-      await withPreview([diagram, "-n"], async ({ url }) => {
+      await withPreview(["preview", diagram, "-n"], async ({ url }) => {
         const page = await open(url);
         for (const label of ["Quick one", "Quick two", "Quick three"]) {
           const started = Date.now();
