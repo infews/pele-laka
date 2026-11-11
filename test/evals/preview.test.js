@@ -10,8 +10,8 @@ import { setTimeout as sleep } from "node:timers/promises";
 import fc from "fast-check";
 import { chromium } from "playwright";
 
-const bin = new URL("../../bin/pele-preview", import.meta.url).pathname;
-const tempDir = () => mkdtempSync(join(tmpdir(), "pele-preview-eval-"));
+const bin = new URL("../../bin/pele-laka", import.meta.url).pathname;
+const tempDir = () => mkdtempSync(join(tmpdir(), "pele-laka-eval-"));
 
 const flow = (label) => `flowchart LR\n  A[${label}] --> B[SVG]\n`;
 const BROKEN = "flowchart LR\n  A --> (((\n";
@@ -31,7 +31,7 @@ function project({ mmd = flow("First"), css = null } = {}) {
   return { dir, diagram, stylesheet };
 }
 
-// Starts `pele-preview ...args` and resolves once it prints its URL. Collects
+// Starts `pele-laka ...args` and resolves once it prints its URL. Collects
 // stdout and stderr as they arrive.
 async function preview(args, { env = process.env, cwd = tempDir() } = {}) {
   const child = spawn(process.execPath, [bin, ...args], { env, cwd });
@@ -166,7 +166,7 @@ describe("PREVIEW", () => {
       // @spec PREVIEW-E2E-001
       const { diagram, stylesheet } = project({ css: SCHEMED });
       await withPreview([diagram, stylesheet, "-n"], async ({ url, out }) => {
-        expect(out.stdout).toMatch(/^pele-preview: http:\/\/127\.0\.0\.1:\d+\/ {2}\(Ctrl-C to stop\)\n/m);
+        expect(out.stdout).toMatch(/^pele-laka: http:\/\/127\.0\.0\.1:\d+\/ {2}\(Ctrl-C to stop\)\n/m);
         const page = await open(url);
         expect(await stageText(page)).toMatch(/First/);
         await page.close();
@@ -339,6 +339,16 @@ describe("PREVIEW", () => {
         writeFileSync(diagram, flow("Back again"));
         await showsLabel(page, "Back again");
         await notReloaded(page);
+        await page.close();
+      });
+    });
+
+    it("PREVIEW-E2E-018 the preview page is titled pele-laka", async () => {
+      // @spec PREVIEW-E2E-018
+      const { diagram } = project();
+      await withPreview([diagram, "-n"], async ({ url }) => {
+        const page = await open(url);
+        expect(await page.title()).toBe("pele-laka");
         await page.close();
       });
     });

@@ -8,10 +8,10 @@ import fc from "fast-check";
 import { chromium } from "playwright";
 import { render, PeleError } from "pele";
 
-const bin = new URL("../../bin/pele-preview", import.meta.url).pathname;
+const bin = new URL("../../bin/pele-laka", import.meta.url).pathname;
 const fixture = (name) => new URL(`../fixtures/${name}`, import.meta.url).pathname;
 const run = (...args) => spawnSync(process.execPath, [bin, ...args], { encoding: "utf8" });
-const tempDir = () => mkdtempSync(join(tmpdir(), "pele-preview-eval-"));
+const tempDir = () => mkdtempSync(join(tmpdir(), "pele-laka-eval-"));
 
 function tempFile(name, contents) {
   const path = join(tempDir(), name);

@@ -23,6 +23,13 @@ Feature: The pele-laka command
 ```
 
 ## EARS Specifications
+- `CLI-CON-001` (new): the package installs one command, `pele-laka`. Covers "the old name is gone" by stating what is installed.
+- `CLI-E2E-011` (new): the usage text begins `usage: pele-laka `.
+- `PREVIEW-E2E-018` (new): the preview page's title is `pele-laka`.
+- `PREVIEW-E2E-001` (changed): runs `pele-laka` and prints `pele-laka: <URL>  (Ctrl-C to stop)`.
+- `EXPORT-E2E-001` (changed): runs `pele-laka`.
+
+Every eval test now runs `bin/pele-laka`, and `CLI-E2E-001/002/004/006` and `CLI-INV-003` look for `usage: pele-laka`; the eval text of those is unchanged.
 
 ## Implementation Plan
 

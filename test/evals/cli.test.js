@@ -1,16 +1,16 @@
-// Eval tests for the CLI area (docs/evals/cli.md). They drive bin/pele-preview,
+// Eval tests for the CLI area (docs/evals/cli.md). They drive bin/pele-laka,
 // not the modules behind it, so any of those can be regrown. Keep them.
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync, writeFileSync, chmodSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync, chmodSync, accessSync, constants } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import fc from "fast-check";
 
-const bin = new URL("../../bin/pele-preview", import.meta.url).pathname;
+const bin = new URL("../../bin/pele-laka", import.meta.url).pathname;
 const fixture = (name) => new URL(`../fixtures/${name}`, import.meta.url).pathname;
 const diagram = fixture("flow.mmd");
 const stylesheet = fixture("theme.css");
-const tempDir = () => mkdtempSync(join(tmpdir(), "pele-preview-eval-"));
+const tempDir = () => mkdtempSync(join(tmpdir(), "pele-laka-eval-"));
 
 // A PATH whose open and xdg-open do nothing, so a run that wrongly starts a
 // preview can't open a real browser.
@@ -26,12 +26,12 @@ const quietEnv = (() => {
 // A server that started would keep running, so give up after a few seconds.
 const run = (...args) => spawnSync(process.execPath, [bin, ...args], { encoding: "utf8", timeout: 5000, env: quietEnv });
 
-const README_USAGE = (() => {
+const readmeUsage = () => {
   const readme = readFileSync(new URL("../../README.md", import.meta.url), "utf8");
-  const block = readme.match(/```\n(usage: pele-preview[^]*?)\n```/);
+  const block = readme.match(/```\n(usage: pele-laka[^]*?)\n```/);
   if (!block) throw new Error("README has no usage block");
   return block[1];
-})();
+};
 
 // A command line with at least one thing wrong with it, and optionally -o, so
 // that a run that wrongly went ahead would write a file or start a server.
@@ -54,13 +54,23 @@ const badCommandLine = fc.tuple(flaw, fc.boolean(), fc.constantFrom("auto", "lig
   });
 
 describe("CLI", () => {
+  describe("contracts", () => {
+    it("CLI-CON-001 the package installs one command, pele-laka", () => {
+      // @spec CLI-CON-001
+      const pkg = JSON.parse(readFileSync(new URL("../../package.json", import.meta.url), "utf8"));
+      expect(pkg.bin).toEqual({ "pele-laka": "bin/pele-laka" });
+      expect(() => accessSync(new URL("../../bin/pele-laka", import.meta.url), constants.X_OK))
+        .withContext("bin/pele-laka is executable").not.toThrow();
+    });
+  });
+
   describe("end-to-end", () => {
     it("CLI-E2E-001 -h and --help print usage to stdout and exit 0", () => {
       // @spec CLI-E2E-001
       for (const args of [["-h"], ["--help"], [diagram, "-h"], [diagram, stylesheet, "--help", "-o", "x.svg"]]) {
         const result = run(...args);
         expect(result.status).withContext(args.join(" ")).toBe(0);
-        expect(result.stdout).toMatch(/^usage: pele-preview /);
+        expect(result.stdout).toMatch(/^usage: pele-laka /);
         expect(result.stderr).toBe("");
       }
     });
@@ -70,7 +80,7 @@ describe("CLI", () => {
       for (const args of [[], ["-n"], ["--scheme", "dark"]]) {
         const result = run(...args);
         expect(result.status).withContext(args.join(" ")).toBe(2);
-        expect(result.stderr).toMatch(/^usage: pele-preview /);
+        expect(result.stderr).toMatch(/^usage: pele-laka /);
       }
     });
 
@@ -94,7 +104,7 @@ describe("CLI", () => {
         const result = run(diagram, option);
         expect(result.status).withContext(option).toBe(2);
         expect(result.stderr).toContain(option);
-        expect(result.stderr).toMatch(/\n\nusage: pele-preview /);
+        expect(result.stderr).toMatch(/\n\nusage: pele-laka /);
       }
     });
 
@@ -112,7 +122,7 @@ describe("CLI", () => {
       for (const args of [[diagram, stylesheet, "extra"], [diagram, stylesheet, "-c", stylesheet]]) {
         const result = run(...args);
         expect(result.status).withContext(args.join(" ")).toBe(2);
-        expect(result.stderr).toMatch(new RegExp(`^unexpected argument: ${args[2] === "extra" ? "extra" : stylesheet}\n\nusage: pele-preview `));
+        expect(result.stderr).toMatch(new RegExp(`^unexpected argument: ${args[2] === "extra" ? "extra" : stylesheet}\n\nusage: pele-laka `));
       }
     });
 
@@ -140,6 +150,14 @@ describe("CLI", () => {
     });
   });
 
+  describe("end-to-end, the name", () => {
+    it("CLI-E2E-011 the usage text begins usage: pele-laka", () => {
+      // @spec CLI-E2E-011
+      const result = run("--help");
+      expect(result.stdout.startsWith("usage: pele-laka ")).withContext(result.stdout || result.stderr).toBe(true);
+    });
+  });
+
   describe("invariants", () => {
     it("CLI-INV-001 invalid arguments exit 2, write nothing and start no server", () => {
       // @spec CLI-INV-001
@@ -159,8 +177,9 @@ describe("CLI", () => {
 
     it("CLI-INV-003 the usage text is the README's", () => {
       // @spec CLI-INV-003
-      expect(run("--help").stdout).toBe(`${README_USAGE}\n`);
-      expect(run().stderr).toBe(`${README_USAGE}\n`);
+      const usage = readmeUsage();
+      expect(run("--help").stdout).toBe(`${usage}\n`);
+      expect(run().stderr).toBe(`${usage}\n`);
     });
   });
 });

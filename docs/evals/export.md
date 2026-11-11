@@ -1,6 +1,6 @@
 # Export
 
-Area `EXPORT`: `pele-preview DIAGRAM [STYLE] -o FILE`, which writes one
+Area `EXPORT`: `pele-laka DIAGRAM [STYLE] -o FILE`, which writes one
 self-contained SVG and exits. Tests: `test/evals/export.test.js`.
 
 ## Invariants
@@ -17,7 +17,7 @@ self-contained SVG and exits. Tests: `test/evals/export.test.js`.
 - `EXPORT-CON-003`: When pele rejects a diagram with a syntax error, the system shall receive a `PeleError` carrying the error's line and column.
 
 ## End-to-end
-- `EXPORT-E2E-001`: When the user runs `pele-preview DIAGRAM STYLE -o FILE`, the system shall write FILE holding pele's rendering of DIAGRAM with STYLE embedded.
+- `EXPORT-E2E-001`: When the user runs `pele-laka DIAGRAM STYLE -o FILE`, the system shall write FILE holding pele's rendering of DIAGRAM with STYLE embedded.
 - `EXPORT-E2E-002`: When an export succeeds, the system shall print `wrote <FILE>` to stdout and exit 0.
 - `EXPORT-E2E-003`: When the user exports with no stylesheet, the system shall write exactly the SVG pele renders.
 - `EXPORT-E2E-004`: Where `--scheme dark` is given, the system shall write CSS in which every `prefers-color-scheme: dark` condition always holds and every `prefers-color-scheme: light` condition never does.

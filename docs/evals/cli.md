@@ -10,6 +10,7 @@ mode are pinned in that mode's area. Tests: `test/evals/cli.test.js`.
 - `CLI-INV-003`: The usage text the system prints shall be the one shown in the README.
 
 ## Contracts
+- `CLI-CON-001`: The package shall install one command, `pele-laka`.
 
 ## End-to-end
 - `CLI-E2E-001`: When the user passes `-h` or `--help` and no unknown option, the system shall print the usage text to stdout and exit 0, whether or not a diagram is given.
@@ -20,6 +21,7 @@ mode are pinned in that mode's area. Tests: `test/evals/cli.test.js`.
 - `CLI-E2E-006`: If the user passes more than a diagram and one stylesheet, counting `-c`, then the system shall print `unexpected argument: <arg>`, then the usage text, to stderr and exit 2.
 - `CLI-E2E-007`: The system shall treat `DIAGRAM STYLE`, `DIAGRAM -c STYLE` and `DIAGRAM --css STYLE` the same.
 - `CLI-E2E-008`: If `--scheme` is not `auto`, `light` or `dark`, then the system shall print `--scheme must be one of auto, light, dark, got: <value>` to stderr and exit 2.
+- `CLI-E2E-011`: The usage text shall begin `usage: pele-laka `.
 
 ## Monitors
 

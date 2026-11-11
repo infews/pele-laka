@@ -1,6 +1,6 @@
 # Preview
 
-Area `PREVIEW`: `pele-preview DIAGRAM [STYLE]` without `-o`, which serves a
+Area `PREVIEW`: `pele-laka DIAGRAM [STYLE]` without `-o`, which serves a
 live-reloading page, plus the options only preview uses (`-p`, `-n`, `-B`).
 Tests: `test/evals/preview.test.js`.
 
@@ -14,7 +14,7 @@ Tests: `test/evals/preview.test.js`.
 - `PREVIEW-CON-003`: Where `-n` is given, the system shall open nothing.
 
 ## End-to-end
-- `PREVIEW-E2E-001`: When the user runs `pele-preview DIAGRAM [STYLE]` without `-o`, the system shall serve the preview page and print `pele-preview: <URL>  (Ctrl-C to stop)` to stdout.
+- `PREVIEW-E2E-001`: When the user runs `pele-laka DIAGRAM [STYLE]` without `-o`, the system shall serve the preview page and print `pele-laka: <URL>  (Ctrl-C to stop)` to stdout.
 - `PREVIEW-E2E-002`: Where `-p PORT` is given, the system shall serve on PORT; where it is absent or 0, on a free port the OS picks.
 - `PREVIEW-E2E-003`: If `-p` isn't a whole number from 0 to 65535, then the system shall print `--port must be …` to stderr and exit 2.
 - `PREVIEW-E2E-004`: The page shall show the diagram exactly as `-o` with the same `--scheme` would write it.
@@ -31,6 +31,7 @@ Tests: `test/evals/preview.test.js`.
 - `PREVIEW-E2E-015`: If the server can't start, then the system shall print `could not start server: <reason>` to stderr and exit 1.
 - `PREVIEW-E2E-016`: When a file is saved once, by writing it or by renaming a new file over it, the system shall render once.
 - `PREVIEW-E2E-017`: When the diagram is deleted and then created again, the page shall show the new render.
+- `PREVIEW-E2E-018`: The preview page's title shall be `pele-laka`.
 
 ## Monitors
 - `PREVIEW-MON-001`: When a file is saved, the system shall show the new render on the page within 1 second.

@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { chromium } from "playwright";
 
-const bin = new URL("../../bin/pele-preview", import.meta.url).pathname;
+const bin = new URL("../../bin/pele-laka", import.meta.url).pathname;
 const THEME = readFileSync(new URL("../../pele-plex.css", import.meta.url), "utf8");
 const EVALS = readFileSync(new URL("../../docs/evals/plex.md", import.meta.url), "utf8");
 const TONES = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -25,7 +25,7 @@ const CARBON = (() => {
 
 // Exports `mmd` with `css` (default: the theme) and returns the SVG text.
 function exported(mmd, { css = THEME, scheme = "auto" } = {}) {
-  const dir = mkdtempSync(join(tmpdir(), "pele-preview-eval-"));
+  const dir = mkdtempSync(join(tmpdir(), "pele-laka-eval-"));
   writeFileSync(join(dir, "d.mmd"), mmd);
   const args = [join(dir, "d.mmd")];
   if (css !== null) {
