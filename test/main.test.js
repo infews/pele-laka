@@ -2,7 +2,7 @@
 // A redesign may rewrite or delete them.
 import { spawn, spawnSync } from "node:child_process";
 import { createServer } from "node:net";
-import { mkdtempSync } from "node:fs";
+import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -42,5 +42,17 @@ describe("pele-laka export's stdout", () => {
     const env = { ...process.env, CHROME_PATH: join(out, "no-chrome") };
     const result = spawnSync(process.execPath, [bin, "export", "-o", out, flow], { encoding: "utf8", env });
     expect(result.stdout.split("\n")[0]).toBe(`wrote ${join(out, "flow.svg")}`);
+  });
+});
+
+describe("pele-laka export's stderr", () => {
+  it("doesn't skip the PNG when CHROME_PATH names a program", () => {
+    const out = mkdtempSync(join(tmpdir(), "pele-laka-main-"));
+    const chrome = join(out, "chrome");
+    writeFileSync(chrome, "#!/bin/sh\n");
+    chmodSync(chrome, 0o755);
+    const env = { ...process.env, CHROME_PATH: chrome };
+    const result = spawnSync(process.execPath, [bin, "export", "-o", out, flow], { encoding: "utf8", env });
+    expect(result.stderr).not.toContain("skipped");
   });
 });
