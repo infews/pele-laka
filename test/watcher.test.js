@@ -8,7 +8,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { watchFiles } from "../src/watcher.js";
 
 const tempFile = () => {
-  const path = join(mkdtempSync(join(tmpdir(), "pele-preview-")), "d.mmd");
+  const path = join(mkdtempSync(join(tmpdir(), "pele-laka-")), "d.mmd");
   writeFileSync(path, "a");
   return path;
 };

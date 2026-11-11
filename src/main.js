@@ -1,4 +1,4 @@
-// The pele-preview command: parses the arguments, then exports or previews.
+// The pele-laka command: parses the arguments, then exports or previews.
 import { writeFileSync } from "node:fs";
 import { parse, UsageError, HelpRequested } from "./cli.js";
 import { readAndCompose, describeError } from "./compose.js";
@@ -64,7 +64,7 @@ async function preview() {
   const files = [options.diagram, options.stylesheet].filter(Boolean);
   const watcher = watchFiles(files, () => report(server.refresh()));
 
-  console.log(`pele-preview: ${server.url}  (Ctrl-C to stop)`);
+  console.log(`pele-laka: ${server.url}  (Ctrl-C to stop)`);
   if (options.open) launch(server.url, { app: options.browserApp });
 
   process.once("SIGINT", async () => {
