@@ -48,6 +48,6 @@ Google Chrome installed on the development and test machine, for the PNG evals.
 ## Open Questions
 
 ## Resulting Stories
-- [ ] [Rename to pele-laka](0005-pele-laka/0010-rename-to-pele-laka.md)
-- [ ] [Preview and export subcommands](0005-pele-laka/0020-preview-and-export-subcommands.md)
-- [ ] [Export also writes a PNG](0005-pele-laka/0030-export-also-writes-a-png.md)
+- [x] [Rename to pele-laka](0005-pele-laka/0010-rename-to-pele-laka.md)
+- [x] [Preview and export subcommands](0005-pele-laka/0020-preview-and-export-subcommands.md)
+- [x] [Export also writes a PNG](0005-pele-laka/0030-export-also-writes-a-png.md)
