@@ -3,10 +3,10 @@
 import { spawn, spawnSync } from "node:child_process";
 import { createServer } from "node:net";
 
-const bin = new URL("../bin/pele-preview", import.meta.url).pathname;
+const bin = new URL("../bin/pele-laka", import.meta.url).pathname;
 const flow = new URL("./fixtures/flow.mmd", import.meta.url).pathname;
 
-describe("pele-preview's stderr", () => {
+describe("pele-laka's stderr", () => {
   it("stays empty for a preview that starts cleanly", async () => {
     const child = spawn(process.execPath, [bin, flow, "-n"]);
     let stdout = "";

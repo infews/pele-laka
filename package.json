@@ -1,10 +1,10 @@
 {
-  "name": "pele-preview",
+  "name": "pele-laka",
   "version": "0.1.0",
   "description": "Preview or export a Mermaid diagram rendered by pele, with your own CSS embedded in the SVG.",
   "type": "module",
   "bin": {
-    "pele-preview": "bin/pele-preview"
+    "pele-laka": "bin/pele-laka"
   },
   "files": [
     "bin",

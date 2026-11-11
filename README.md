@@ -1,4 +1,4 @@
-# pele-preview
+# pele-laka
 
 Live browser preview of a [Mermaid](https://mermaid.js.org) diagram, rendered by
 [pele](https://pele.run), with your own CSS. Point it at a `.mmd` file and it opens
@@ -6,8 +6,8 @@ a page that re-renders whenever you save the diagram or the stylesheet. When you
 are happy, export the same thing as one self-contained SVG.
 
 ```sh
-pele-preview docs/architecture.mmd theme.css                  # live preview
-pele-preview docs/architecture.mmd theme.css -o diagram.svg   # export and exit
+pele-laka docs/architecture.mmd theme.css                  # live preview
+pele-laka docs/architecture.mmd theme.css -o diagram.svg   # export and exit
 ```
 
 pele is a pure-JavaScript renderer, so there is no headless browser, no `mmdc`
@@ -24,7 +24,7 @@ npm install && npm link      # or: npm i -g .
 ## Usage
 
 ```
-usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
+usage: pele-laka DIAGRAM.mmd [STYLE.css] [options]
 
   -o, --output FILE    write a self-contained SVG to FILE and exit (no server)
   -c, --css FILE       stylesheet (same as the second positional argument)
@@ -147,7 +147,7 @@ built on IBM Carbon's neutrals and categorical palette, in light and dark. Use
 it as the stylesheet, or copy it as a starting point for your own:
 
 ```sh
-pele-preview diagram.mmd pele-plex.css
+pele-laka diagram.mmd pele-plex.css
 ```
 
 The eight series colors are available as classes named `tone-1` … `tone-8`. You don't need any `classDef`.

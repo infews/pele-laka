@@ -5,7 +5,7 @@ export default [
   { ignores: ["node_modules/", "reports/", ".stryker-tmp/"] },
   js.configs.recommended,
   {
-    files: ["**/*.js", "bin/pele-preview"],
+    files: ["**/*.js", "bin/pele-laka"],
     languageOptions: { globals: { ...globals.node } },
   },
   {

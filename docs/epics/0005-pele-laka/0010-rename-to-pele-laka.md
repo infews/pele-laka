@@ -36,7 +36,7 @@ Smallest change: rename everywhere the tool names itself. Nothing to regrow: a
 rename changes no structure, and story 0020 rewrites the Arguments subsystem
 anyway.
 
-- [ ] Rename the command and package (Arguments: `src/cli.js`). `git mv bin/pele-preview bin/pele-laka`; `package.json` name and `bin` become `pele-laka` (and `package-lock.json` by `npm install`, then `npm link` again locally); `USAGE` starts `usage: pele-laka`; the README's usage block, title and prose say pele-laka; `CLAUDE.md`'s title; `eslint.config.js`'s bin path; the internal tests that name the bin or the usage (`test/cli.test.js`, `test/main.test.js`). Makes CLI-CON-001, CLI-E2E-011, EXPORT-E2E-001 and the CLI evals pass again.
+- [x] Rename the command and package (Arguments: `src/cli.js`). `git mv bin/pele-preview bin/pele-laka`; `package.json` name and `bin` become `pele-laka` (and `package-lock.json` by `npm install`, then `npm link` again locally); `USAGE` starts `usage: pele-laka`; the README's usage block, title and prose say pele-laka; `CLAUDE.md`'s title; `eslint.config.js`'s bin path; the internal tests that name the bin or the usage (`test/cli.test.js`, `test/main.test.js`). Makes CLI-CON-001, CLI-E2E-011, EXPORT-E2E-001 and the CLI evals pass again.
 - [ ] Rename what preview shows (Preview: `src/main.js`; `src/page.html`). The URL line prints `pele-laka: <URL>  (Ctrl-C to stop)`, the page title is `pele-laka`, and the comment at the top of `src/main.js` names pele-laka; `test/watcher.test.js`'s temp prefix too. Makes PREVIEW-E2E-001 and PREVIEW-E2E-018 pass, and the rest of the PREVIEW and PLEX evals again.
 
 ## Issues

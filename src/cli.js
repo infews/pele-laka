@@ -7,7 +7,7 @@ import { SCHEMES } from "./compose.js";
 export class UsageError extends Error {}
 export class HelpRequested extends Error {}
 
-export const USAGE = `usage: pele-preview DIAGRAM.mmd [STYLE.css] [options]
+export const USAGE = `usage: pele-laka DIAGRAM.mmd [STYLE.css] [options]
 
   -o, --output FILE    write a self-contained SVG to FILE and exit (no server)
   -c, --css FILE       stylesheet (same as the second positional argument)

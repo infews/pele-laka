@@ -1,4 +1,4 @@
-# pele-preview
+# pele-laka
 
 This project follows the Specs of Theseus method: the evals in `docs/evals/` are
 the spec, and work is planned in `docs/epics/`. Subsystems are marked in the code

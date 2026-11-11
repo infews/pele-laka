@@ -57,7 +57,7 @@ describe("parse", () => {
     });
 
     it("prints usage when the diagram is missing", () => {
-      expect(() => parse([])).toThrowError(UsageError, /^usage: pele-preview/);
+      expect(() => parse([])).toThrowError(UsageError, /^usage: pele-laka/);
     });
 
     it("names files that don't exist", () => {
