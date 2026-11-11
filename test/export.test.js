@@ -1,6 +1,6 @@
 // Internal tests of the Export subsystem (src/export.js). A redesign may rewrite
 // or delete them; the EXPORT evals are what must keep passing.
-import { mkdtempSync, readFileSync, readdirSync } from "node:fs";
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { exportFiles } from "../src/export.js";
@@ -26,11 +26,40 @@ describe("exportFiles", () => {
     expect(lines).toEqual({ log: [`wrote ${options.svg}`], warn: [`skipped ${options.png}: PNG export needs Google Chrome`] });
   });
 
-  it("doesn't skip the PNG when there is a Chrome", async () => {
-    const { options, lines } = exporting(fixture("flow.mmd"));
-    const using = { log: (line) => lines.log.push(line), warn: (line) => lines.warn.push(line), findChrome: () => "/a/chrome" };
-    expect(await exportFiles(options, using)).toBe(0);
-    expect(lines.warn).toEqual([]);
+  describe("with a Chrome", () => {
+    // Runs the export with Chrome at /a/chrome and `drawPng` in its place.
+    async function withChrome(scheme, drawPng) {
+      const { dir, options, lines } = exporting(fixture("flow.mmd"));
+      options.scheme = scheme;
+      const using = { log: (line) => lines.log.push(line), warn: (line) => lines.warn.push(line), findChrome: () => "/a/chrome", drawPng };
+      return { dir, options, lines, code: () => exportFiles(options, using) };
+    }
+
+    it("writes the PNG Chrome draws after the SVG, says so, and returns 0", async () => {
+      const { options, lines, code } = await withChrome("auto", async () => Buffer.from("png bytes"));
+      expect(await code()).toBe(0);
+      expect(readFileSync(options.png, "utf8")).toBe("png bytes");
+      expect(lines).toEqual({ log: [`wrote ${options.svg}`, `wrote ${options.png}`], warn: [] });
+    });
+
+    it("hands Chrome the SVG fixed dark for dark, and light for light or auto", async () => {
+      for (const scheme of ["auto", "light", "dark"]) {
+        const drawn = [];
+        const { options, code } = await withChrome(scheme, async (svg, chrome) => { drawn.push([svg, chrome]); return Buffer.from(""); });
+        await code();
+        const fixed = scheme === "dark" ? "dark" : "light";
+        expect(drawn).withContext(scheme).toEqual([[readAndCompose({ ...options, scheme: fixed }), "/a/chrome"]]);
+      }
+    });
+
+    it("names the PNG and Chrome's error, keeps the SVG and an old PNG, and returns 1", async () => {
+      const { options, lines, code } = await withChrome("auto", async () => { throw new Error("chrome broke"); });
+      writeFileSync(options.png, "previous");
+      expect(await code()).toBe(1);
+      expect(readFileSync(options.png, "utf8")).toBe("previous");
+      expect(readFileSync(options.svg, "utf8")).toBe(readAndCompose(options));
+      expect(lines).toEqual({ log: [`wrote ${options.svg}`], warn: [`${options.png}: chrome broke`] });
+    });
   });
 
   it("describes a render error, writes nothing, and returns 1", async () => {

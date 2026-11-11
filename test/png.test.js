@@ -3,7 +3,7 @@
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { findChrome, MAC_CHROME } from "../src/png.js";
+import { drawPng, findChrome, MAC_CHROME } from "../src/png.js";
 
 const tempDir = () => mkdtempSync(join(tmpdir(), "pele-laka-png-"));
 
@@ -69,5 +69,25 @@ describe("findChrome", () => {
     const bin = tempDir();
     file(bin, "google-chrome");
     expect(findChrome({ env: { PATH: bin }, platform: "win32" })).toBeNull();
+  });
+});
+
+describe("drawPng", () => {
+  const chrome = findChrome();
+  const needsChrome = () => { if (!chrome) pending("Google Chrome not installed"); };
+  // A wide SVG with a red box in the middle and nothing at its edges.
+  const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="40" style="max-width:100%;height:auto"><rect x="700" y="10" width="100" height="20" fill="#ff0000"/></svg>';
+
+  it("draws the SVG at twice its size, even wider than a window", async () => {
+    needsChrome();
+    const png = await drawPng(svg, chrome);
+    expect(png.subarray(1, 4).toString()).toBe("PNG");
+    expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([3000, 80]);
+  });
+
+  it("names Chrome's own error when it can't start", async () => {
+    const broken = file(tempDir(), "chrome");
+    writeFileSync(broken, "#!/bin/sh\necho 'chrome broke' >&2\nexit 1\n");
+    await expectAsync(drawPng(svg, broken)).toBeRejectedWithError(/chrome broke/);
   });
 });
