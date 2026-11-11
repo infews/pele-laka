@@ -2,9 +2,9 @@
 /*
  * pele-plex.css — an IBM Plex theme for Pele (https://github.com/obsidianmd/pele)
  *
- * Fonts      IBM Plex Sans for labels, IBM Plex Mono for monospace parts.
+ * Fonts      IBM Plex Sans for labels, IBM Plex Mono for edge labels and monospace parts.
  * Colors     IBM Carbon's neutrals and categorical palette, with a light and a dark side.
- * Edge text  ALL CAPS, slightly smaller, tracked out, in a rounded pill.
+ * Edge text  ALL CAPS, monospaced, slightly smaller, tracked out, in a rounded pill.
  * Utility    .hidden { display: none }
  *
  * ── Light / dark ─────────────────────────────────────────────────────────────────────
@@ -100,6 +100,7 @@
 
 .pele .pele-edge-label text {
   text-transform: uppercase;
+  font-family: var(--pele-font-mono);
   letter-spacing: var(--plex-edge-label-tracking);
   font-size: calc(var(--plex-edge-label-scale) * 1em);
   font-weight: var(--plex-edge-label-weight);
@@ -113,6 +114,7 @@
    to give sequence messages the same treatment. */
 .pele.pele-sequence .pele-edge-label text {
   text-transform: none;
+  font-family: inherit;
   letter-spacing: normal;
   font-size: inherit;
   font-weight: inherit;

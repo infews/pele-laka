@@ -1,0 +1,260 @@
+/* @subsystem PlexTheme */
+/*
+ * pele-plex.css — an IBM Plex theme for Pele (https://github.com/obsidianmd/pele)
+ *
+ * Fonts      IBM Plex Sans for labels, IBM Plex Mono for monospace parts.
+ * Colors     IBM Carbon's neutrals and categorical palette, with a light and a dark side.
+ * Edge text  ALL CAPS, slightly smaller, tracked out, in a rounded pill.
+ * Utility    .hidden { display: none }
+ *
+ * ── Light / dark ─────────────────────────────────────────────────────────────────────
+ *   By default a diagram follows the OS setting, via @media (prefers-color-scheme: dark).
+ *   pele-preview's --scheme light|dark pins the mode by
+ *   rewriting that media query in the embedded copy of this file.
+ *   Switching never needs a re-render: every color is a light-dark() pair that the
+ *   browser resolves against the diagram's color-scheme.
+ *   Needs light-dark(): Chrome/Edge 123+, Safari 17.5+, Firefox 120+.
+ *
+ * ── Fonts and measuring ─────────────────────────────────────────────────────────────
+ *   In a browser, pele's mount() reads --pele-font / --pele-font-mono from CSS (set
+ *   below) and re-measures once the web fonts finish loading.
+ *   Under Node (render(), which pele-preview uses), pele lays labels out from a
+ *   built-in width table at its default size, whatever the family; the edge-label
+ *   rules below scale relative to that size.
+ *   Remove the @import below if you self-host Plex (e.g. via @fontsource).
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&family=Noto+Sans+Mono:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&display=swap');
+
+/* ─── Utility ────────────────────────────────────────────────────────────────────── */
+
+.hidden {
+  display: none;
+}
+
+
+/* ─── Fonts, weights, knobs ──────────────────────────────────────────────────────── */
+/* Declared on :root so a container sees them before its first render (mount() reads
+   them from there), and so your own CSS can override them on any ancestor. */
+
+:root {
+  --pele-font: "Noto Sans", "Noto Color Emoji", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --pele-font-mono: "Noto Sans Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --pele-title-weight: 600;
+  --pele-heading-weight: 600;
+  --pele-bold-weight: 600;
+  --pele-radius: 6px;
+
+  /* Edge-label tuning. Scale is relative to the size Pele measured the label at. */
+  --plex-edge-label-scale: 0.72;       /* text size, vs. what Pele measured (caps need ≤ ~0.78) */
+  --plex-edge-label-tracking: 0.06em;  /* letter-spacing for the caps */
+  --plex-edge-label-weight: 500;
+  --plex-edge-label-pad-x: 1.06;       /* pill width, as a factor of Pele's measured box */
+  --plex-edge-label-pad-x-wrapped: 1.14; /* pill width for labels Pele wrapped onto 2+ lines */
+  --plex-edge-label-pad-y: 1.0;        /* pill height, as a factor of Pele's measured box */
+  --plex-edge-label-pad-y-wrapped: 1.18; /* pill height for labels on 2+ lines */
+  /* --plex-edge-label-radius: 4px;       unset = full pill; set for a soft-cornered tag */
+  --plex-edge-label-stroke-width: 1px;
+
+  /* Edge lines. Pele's defaults are 1px, and 2.5px for thick (==>) edges. */
+  --plex-edge-width: 1.75px;
+  --plex-edge-width-thick: 3.25px;
+}
+
+/* Every diagram resolves its light-dark() colors against this. The OS setting is
+   read through these two media queries, and nowhere else, so a tool can pin the
+   mode by rewriting them (pele-preview --scheme light|dark does exactly that). */
+.pele {
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  .pele {
+    color-scheme: dark;
+  }
+}
+
+/* ─── Edges ──────────────────────────────────────────────────────────────────────── */
+
+.pele .pele-edges {
+  stroke-width: var(--plex-edge-width);
+}
+.pele .pele-edge > path[stroke-width="2.5"] {
+  stroke-width: var(--plex-edge-width-thick);
+}
+/* Arrowheads and dots are filled shapes drawn with stroke="none"; a thin stroke in the
+   edge's color scales them up to match the heavier line and rounds their tips. Stroked
+   markers (the --x cross) already follow the line width and are left alone. */
+.pele .pele-edge > .pele-marker[stroke="none"] {
+  stroke: inherit;
+  stroke-width: calc(var(--plex-edge-width) * 0.5);
+  stroke-linejoin: round;
+}
+
+
+/* ─── Edge labels ────────────────────────────────────────────────────────────────── */
+/* Pele draws a graph edge label as
+     <g class="pele-edge-label"><rect …/><text>…</text></g>
+   with the rect sized to the text it measured. Uppercase + tracking widens text, so
+   the text is shrunk to compensate and the rect is grown around its own center. */
+
+.pele .pele-edge-label text {
+  text-transform: uppercase;
+  font-family: var(--pele-font-mono);
+  letter-spacing: var(--plex-edge-label-tracking);
+  font-size: calc(var(--plex-edge-label-scale) * 1em);
+  font-weight: var(--plex-edge-label-weight);
+  fill: var(--plex-edge-label-fg, var(--pele-fg));
+  /* Pele sets the baseline for the measured size; re-center the smaller caps. */
+  transform: translateY(calc(-0.35em * (1 / var(--plex-edge-label-scale) - 1)));
+}
+
+/* Sequence diagrams draw message text as edge labels too, often with no backing rect.
+   Caps on long messages read poorly there, so they are left as-is. Delete this rule
+   to give sequence messages the same treatment. */
+.pele.pele-sequence .pele-edge-label text {
+  text-transform: none;
+  font-family: inherit;
+  letter-spacing: normal;
+  font-size: inherit;
+  font-weight: inherit;
+  transform: none;
+}
+
+/* Wrapped labels (one <tspan x=…> per line) get a little more room on every side. */
+.pele .pele-edge-label:has(tspan[x] + tspan[x]) {
+  --plex-edge-label-pad-x: var(--plex-edge-label-pad-x-wrapped);
+  --plex-edge-label-pad-y: var(--plex-edge-label-pad-y-wrapped);
+}
+
+.pele:not(.pele-sequence) .pele-edge-label > rect {
+  fill: var(--plex-edge-label-bg, var(--pele-bg));
+  stroke: var(--plex-edge-label-border, var(--pele-border));
+  stroke-width: var(--plex-edge-label-stroke-width);
+  /* The radius as drawn, then divided by the scale below so the corners stay circular.
+     Pele's single-line label box is 1.5em tall, so 0.75em × pad-y is a full pill;
+     multi-line labels get the same radius and read as rounded rectangles. */
+  --_plex-r: var(--plex-edge-label-radius, calc(0.75em * var(--plex-edge-label-pad-y)));
+  rx: calc(var(--_plex-r) / var(--plex-edge-label-pad-x));
+  ry: calc(var(--_plex-r) / var(--plex-edge-label-pad-y));
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(var(--plex-edge-label-pad-x), var(--plex-edge-label-pad-y));
+  vector-effect: non-scaling-stroke;
+}
+
+
+/* ─── Tones: series colors on flowchart nodes and subgraphs ──────────────────────── */
+/* In the diagram:
+     A[Ingest]:::tone-1            a node (one ::: class per node)
+     class B,C tone-2              several nodes
+     class MySubgraph tone-3       a subgraph, by its id (subgraphs can't take :::)
+     D[Alert]:::tone-4             a full-strength fill: add "solid" on its own line,
+     class D solid                   as Mermaid takes one class per ::: or class line
+   No classDef is needed; Pele copies the class names onto the SVG. Tones follow
+   light/dark mode because they read --pele-series-1…8. */
+
+/* --plex-tone-on is the text color set on a full-strength tone: near-black or white,
+   whichever reads better on that tone in each mode (at least 4.5:1). */
+.pele .tone-1 { --plex-tone: var(--pele-series-1); --plex-tone-on: var(--pele-fg-on-dark); }
+.pele .tone-2 { --plex-tone: var(--pele-series-2); --plex-tone-on: var(--pele-fg-on-light); }
+.pele .tone-3 { --plex-tone: var(--pele-series-3); --plex-tone-on: light-dark(var(--pele-fg-on-light), var(--pele-fg-on-dark)); }
+.pele .tone-4 { --plex-tone: var(--pele-series-4); --plex-tone-on: light-dark(var(--pele-fg-on-dark), var(--pele-fg-on-light)); }
+.pele .tone-5 { --plex-tone: var(--pele-series-5); --plex-tone-on: var(--pele-fg-on-light); }
+.pele .tone-6 { --plex-tone: var(--pele-series-6); --plex-tone-on: light-dark(var(--pele-fg-on-dark), var(--pele-fg-on-light)); }
+.pele .tone-7 { --plex-tone: var(--pele-series-7); --plex-tone-on: light-dark(var(--pele-fg-on-dark), var(--pele-fg-on-light)); }
+.pele .tone-8 { --plex-tone: var(--pele-series-8); --plex-tone-on: light-dark(var(--pele-fg-on-dark), var(--pele-fg-on-light)); }
+
+:root {
+  --plex-tone-node-mix: 18%;     /* how much tone is mixed into a node's fill */
+  --plex-tone-cluster-mix: 9%;   /* …and into a subgraph's fill */
+  --plex-tone-title-mix: 75%;    /* how much tone is in a subgraph's title; the rest is
+                                    the foreground, so every title reads at 4.5:1 */
+}
+
+/* Nodes: tinted fill, full-tone outline. Detail lines (cylinder lids, subroutine
+   bars) are drawn with fill="none" and only take the stroke. */
+.pele .pele-node:is(.tone-1, .tone-2, .tone-3, .tone-4, .tone-5, .tone-6, .tone-7, .tone-8)
+  > :not(text, [fill="none"]) {
+  fill: color-mix(in srgb, var(--plex-tone) var(--plex-tone-node-mix), var(--pele-surface));
+}
+.pele .pele-node:is(.tone-1, .tone-2, .tone-3, .tone-4, .tone-5, .tone-6, .tone-7, .tone-8)
+  > :not(text) {
+  stroke: var(--plex-tone);
+}
+
+/* Solid: the tone itself as the fill, with the tone's own text color on it. A solid
+   node with no tone is filled with the accent and keeps background-colored text. */
+.pele .pele-node.solid > :not(text, [fill="none"]) {
+  fill: var(--plex-tone, var(--pele-accent));
+}
+.pele .pele-node.solid > :not(text) {
+  stroke: var(--plex-tone, var(--pele-accent));
+}
+.pele .pele-node.solid > :is(path[fill="none"]) {
+  stroke: var(--plex-tone-on, var(--pele-bg));
+}
+.pele .pele-node.solid .pele-label {
+  fill: var(--plex-tone-on, var(--pele-bg));
+}
+
+/* Subgraphs: a lighter tint, an opaque fill (Pele draws them at 0.5 opacity), a
+   tone outline, and a title in the tone deepened toward the foreground. A title Pele
+   moves off the box to dodge an edge is drawn outside this group and keeps the
+   default color. */
+.pele .pele-cluster:is(.tone-1, .tone-2, .tone-3, .tone-4, .tone-5, .tone-6, .tone-7, .tone-8)
+  > rect {
+  fill: color-mix(in srgb, var(--plex-tone) var(--plex-tone-cluster-mix), var(--pele-bg));
+  fill-opacity: 1;
+  stroke: var(--plex-tone);
+}
+.pele .pele-cluster:is(.tone-1, .tone-2, .tone-3, .tone-4, .tone-5, .tone-6, .tone-7, .tone-8)
+  > .pele-cluster-label {
+  fill: color-mix(in srgb, var(--plex-tone) var(--plex-tone-title-mix), var(--pele-fg));
+}
+
+
+/* ─── Colors ─────────────────────────────────────────────────────────────────────── */
+/* Each color is light-dark(<light>, <dark>). Neutral grays and IBM blue; the series
+   is IBM Carbon's categorical palette. */
+
+:root {
+  --pele-bg:          light-dark(#ffffff, #161616);
+  --pele-fg:          light-dark(#161616, #f4f4f4);
+  --pele-fg-on-light: #161616;
+  --pele-fg-on-dark:  #ffffff;
+  --pele-muted:       light-dark(#6f6f6f, #a8a8a8);
+  --pele-line:        light-dark(#525252, #a8a8a8);
+  --pele-surface:     light-dark(#f4f4f4, #262626);
+  --pele-surface-alt: light-dark(#e0e0e0, #393939);
+  --pele-border:      light-dark(#8d8d8d, #6f6f6f);
+  --pele-accent:      light-dark(#0f62fe, #78a9ff);
+  --pele-critical:    light-dark(#da1e28, #ff8389);
+  --pele-error:       light-dark(#da1e28, #ff8389);
+  --pele-series-1:    light-dark(#6929c4, #8a3ffc);
+  --pele-series-2:    light-dark(#1192e8, #33b1ff);
+  --pele-series-3:    light-dark(#009d9a, #007d79);
+  --pele-series-4:    light-dark(#9f1853, #ff7eb6);
+  --pele-series-5:    light-dark(#fa4d56, #fa4d56);
+  --pele-series-6:    light-dark(#570408, #ffb3b8);
+  --pele-series-7:    light-dark(#198038, #6fdc8c);
+  --pele-series-8:    light-dark(#002d9c, #4589ff);
+}
+
+/* Moved subgraph titles. When a title would cross an edge, pele draws it in a
+   separate group, <g class="pele-cluster-title" data-id="…">, without the
+   subgraph's tone class. These rules color any moved title, and the halo under
+   it, from --plex-tone. A title with no --plex-tone keeps pele's defaults: the
+   color-mix() below is then invalid, so each var() falls back. */
+.pele .pele-cluster-title {
+  --plex-moved-title: color-mix(in srgb, var(--plex-tone) var(--plex-tone-title-mix), var(--pele-fg));
+  --plex-moved-halo: color-mix(in srgb, var(--plex-tone) var(--plex-tone-cluster-mix), var(--pele-bg));
+}
+.pele .pele-cluster-title > .pele-cluster-label {
+  fill: var(--plex-moved-title, var(--pele-muted));
+}
+.pele .pele-cluster-title > text:not(.pele-cluster-label) {
+  stroke: var(--plex-moved-halo, color-mix(in srgb, var(--pele-surface-alt) 50%, var(--pele-bg)));
+}
+
+/* Per diagram: one line for each moved title of a toned subgraph, by its id. */
+.pele .pele-cluster-title[data-id="RS"] { --plex-tone: var(--pele-series-3); }
