@@ -60,5 +60,28 @@ Feature: PNG export
 Eval tests that only check the SVG run with `CHROME_PATH` pointing at a missing file, so they stay fast and don't need Chrome; what they check is unchanged.
 
 ## Implementation Plan
+Smallest change: `parse` adds a `png` path beside `svg` and checks it for
+`would overwrite`; `exportSvg` in `main.js` then finds Chrome, draws the SVG in
+it with `playwright-core` (the library alone, no bundled browsers) and writes
+the PNG.
+
+Regrow: extract the Export subsystem from `main.js` into `src/export.js`, as
+0020 planned, and give drawing its own subsystem, PNG (`src/png.js`): find
+Chrome (`CHROME_PATH`, else the standard install location) and turn an SVG into
+PNG bytes. Export stays in charge of order, messages and exit codes; PNG knows
+only Chrome. Two choices keep the PNG predictable:
+- it draws the SVG composed with `light` unless `--scheme dark`, so `auto`
+  is light whatever Chrome or the OS prefers;
+- it writes the file only after Chrome hands back every byte, so a failure
+  leaves an old PNG as it was.
+
+`playwright-core` becomes a shipped dependency, pinned to the version the
+tests' `playwright` already uses.
+
+- [ ] Extract Export (Export: `src/main.js` → `src/export.js`, marker moves). No behavior change; `main.js` only dispatches. Every eval that passes now still passes.
+- [ ] The PNG's path (Arguments: `src/cli.js`). Export's options gain `png`, `NAME.png` beside `svg`; a `png` equal to the diagram or the stylesheet is `would overwrite <path>`. Makes EXPORT-E2E-015 pass.
+- [ ] Find Chrome, or skip the PNG (PNG: `src/png.js`, new; Export). `CHROME_PATH` when set, else `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome` on macOS or `google-chrome` on the PATH on Linux. Not found: `skipped <png>: PNG export needs Google Chrome`, exit 0. Makes EXPORT-E2E-019 pass.
+- [ ] Draw the PNG (PNG, Export; `package.json` gains `playwright-core`). Launch Chrome from the found path, light color scheme, device scale 2, transparent background; screenshot the root `<svg>`; write `NAME.png` and print `wrote <png>` after the SVG. A failure prints `<png>: MESSAGE` with Chrome's error and exits 1. Makes EXPORT-CON-004, -E2E-002, -012, -014, -016, -017, -018 and -020 pass.
+- [ ] Docs. The README drops "no headless browser" for PNG, says what export writes and that PNG needs Google Chrome (or `CHROME_PATH`); `CLAUDE.md` notes the PNG evals need Chrome. The usage line for `export` says it writes the SVG and the PNG, in both `USAGE` and the README (CLI-INV-003).
 
 ## Issues
